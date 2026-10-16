@@ -204,7 +204,7 @@ table.tbl th{background:#f2f2f2}
 <header class="top">
   <div class="brand">
     <img id="brandLogo" alt="">
-    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver">Versi 16 Okt 2026 · 21.00</small></div>
+    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 16 Okt 2026 · 21.15</small></div>
   </div>
   <div class="actions">
     <button class="btn" id="btnNew" type="button">Surat baru</button>
@@ -1253,6 +1253,20 @@ fillKop(); applyKop(); fillForm(); render(); renderArsip();
 setStatus(cur?"Tersimpan":"Belum disimpan",!!cur);
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{fitPaper();markPages()});
 window.__test={buildDocx,buildDocumentXml};
+
+/* ---------- Pembaruan otomatis (versi online) ---------- */
+// GitHub menyimpan salinan lama beberapa menit. Saat dibuka, aplikasi mengambil versi terbaru langsung
+// dan memuat ulang sendiri bila berbeda, lalu merapikan alamat kembali tanpa "?v=".
+(function(){
+  if(location.protocol!=="https:") return;
+  if(/[?&]v=/.test(location.search)) history.replaceState(null,"",location.pathname+location.hash);
+  const ini=$("verLabel").textContent.trim();
+  fetch(location.pathname+"?cek="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():"").then(html=>{
+    const m=html.match(/id="verLabel">([^<]+)</); if(!m || m[1].trim()===ini) return;
+    if(dirty) save(true);
+    location.replace(location.pathname+"?v="+Date.now());
+  }).catch(()=>{});
+})();
 </script>
 </body>
 </html>
