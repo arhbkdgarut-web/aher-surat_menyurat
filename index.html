@@ -204,7 +204,7 @@ table.tbl th{background:#f2f2f2}
 <header class="top">
   <div class="brand">
     <img id="brandLogo" alt="">
-    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 16 Okt 2026 · 21.15</small></div>
+    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 16 Okt 2026 · 21.30</small></div>
   </div>
   <div class="actions">
     <button class="btn" id="btnNew" type="button">Surat baru</button>
@@ -683,18 +683,20 @@ function parseNota(text){
 function rapikan(silent){
   const parsed=parseNota($("f-isi").value);
   const found=Object.keys(parsed).filter(k=>!["isi","lampOn","lampText"].includes(k));
-  if(!found.length && !parsed.lampOn){ if(!silent) toast("Tidak ada bagian kepala, tanda tangan, atau lampiran yang perlu dipindah."); return; }
+  if(!found.length && !parsed.lampOn){
+    // Hanya isi (misalnya disalin dari PDF): cukup sambungkan baris yang terpotong
+    if(parsed.isi && parsed.isi!==$("f-isi").value){ doc.isi=parsed.isi; fillForm(); changed(); toast("Baris yang terpotong sudah disambung. Periksa hasilnya."); }
+    else if(!silent) toast("Isi surat sudah rapi.");
+    return;
+  }
   if(!parsed.lampOn){delete parsed.lampOn; delete parsed.lampText;}
   Object.assign(doc,parsed); fillForm(); changed();
   const nb=textToBlocks(doc.isi,false), cnt=k=>nb.filter(x=>x.k===k).length;
   toast("Dirapikan: "+(cnt("butir")+cnt("huruf"))+" butir, "+cnt("judul")+" sub judul"+(parsed.lampOn?", lampiran dipindah":"")+". Periksa hasilnya.");
 }
 $("btnParse").addEventListener("click",()=>rapikan(false));
-// Tempelan yang memuat Yth./Hal atau LAMPIRAN langsung dirapikan
-$("f-isi").addEventListener("paste",e=>{
-  const txt=(e.clipboardData||window.clipboardData)?.getData("text")||"";
-  if(/^(Yth\.?|Kepada|Hal|Perihal)[\s:]*[:\t]/im.test(txt) || /^LAMPIRAN\b/m.test(txt)) setTimeout(()=>rapikan(true),0);
-});
+// Setiap tempelan langsung dirapikan: bagian kepala dipindah, baris terpotong dari PDF disambung
+$("f-isi").addEventListener("paste",()=>setTimeout(()=>rapikan(true),0));
 
 /* ---------- Daftar tujuan (autocomplete Kepada & Tembusan) ---------- */
 const fitRows = ta => { ta.rows=Math.max(2,Math.min(8,lines(ta.value).length+1)); }; // kotak membesar sesuai jumlah tujuan
