@@ -76,6 +76,12 @@ hr.sep{border:0;border-top:1px solid var(--line);margin:4px 0;width:100%}
 .pk-item .ck{width:14px;flex:none;color:var(--accent);font-weight:700}
 .pk-item.new{color:var(--accent)}
 .pk-hint{font-size:11px;color:var(--muted);padding:4px 8px}
+.pk-btn{margin-top:6px}
+.pk-panel{position:absolute;left:0;right:0;z-index:9;margin-top:4px;background:var(--panel);border:1px solid var(--line);border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,.15);padding:6px;max-height:320px;overflow:auto}
+.pk-panel label{flex-direction:row;align-items:flex-start;gap:8px;padding:6px 8px;border-radius:4px;cursor:pointer;color:var(--fg);font-weight:400;font-size:13px}
+.pk-panel label:hover{background:var(--accent-soft)}
+.pk-panel input[type=checkbox]{margin-top:2px;accent-color:var(--accent)}
+.pk-panel .pk-foot{display:flex;justify-content:space-between;align-items:center;padding:6px 8px 2px;border-top:1px solid var(--line);margin-top:4px}
 .arsip-item{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;cursor:pointer;background:var(--panel)}
 .arsip-item:hover{border-color:var(--accent)}
 .arsip-item.current{border-color:var(--accent);background:var(--accent-soft)}
@@ -197,7 +203,7 @@ table.tbl th{background:#f2f2f2}
 <header class="top">
   <div class="brand">
     <img id="brandLogo" alt="">
-    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver">Versi 16 Okt 2026 · 20.40</small></div>
+    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver">Versi 16 Okt 2026 · 20.50</small></div>
   </div>
   <div class="actions">
     <button class="btn" id="btnNew" type="button">Surat baru</button>
@@ -230,6 +236,8 @@ table.tbl th{background:#f2f2f2}
         <div class="picker" data-for="kepada">
           <textarea id="f-kepada" rows="2" autocomplete="off" placeholder="Ketik, misalnya: bupati, sekda, kemenag… lalu pilih"></textarea>
           <div class="pk-list" hidden></div>
+          <button type="button" class="btn sm pk-btn" aria-expanded="false">Pilih dari daftar ▾</button>
+          <div class="pk-panel" hidden></div>
         </div>
         <label class="check only-nota"><input type="checkbox" id="f-kepadaNum"> Beri nomor pada daftar Kepada</label>
         <label class="only-nota">Dari
@@ -275,6 +283,8 @@ table.tbl th{background:#f2f2f2}
         <div class="picker" data-for="tembusan">
           <textarea id="f-tembusan" rows="2" autocomplete="off" placeholder="Ketik, misalnya: bupati, wabup, sekda… lalu pilih"></textarea>
           <div class="pk-list" hidden></div>
+          <button type="button" class="btn sm pk-btn" aria-expanded="false">Pilih dari daftar ▾</button>
+          <div class="pk-panel" hidden></div>
         </div>
       </fieldset>
       <hr class="sep">
@@ -760,6 +770,29 @@ document.querySelectorAll(".picker").forEach(pk=>{
   list.addEventListener("mousedown",e=>e.preventDefault()); // kursor tetap di kolom
   list.addEventListener("click",e=>{const b=e.target.closest(".pk-item"); if(b) pick(Number(b.dataset.i));});
   ta.addEventListener("blur",()=>setTimeout(()=>{list.hidden=true},120));
+});
+// Dropdown centang: pilih tujuan tanpa mengetik
+document.querySelectorAll(".picker").forEach(pk=>{
+  const field=pk.dataset.for, ta=$("f-"+field), btn=pk.querySelector(".pk-btn"), panel=pk.querySelector(".pk-panel");
+  const ada = () => new Set(lines(ta.value).map(l=>cleanTujuan(l).toLowerCase()));
+  function isi(){
+    const s=ada(), semua=semuaTujuan();
+    panel.innerHTML=semua.map((n,i)=>'<label><input type="checkbox" data-i="'+i+'"'+(s.has(n.toLowerCase())?" checked":"")+'><span>'+esc(n)+'</span></label>').join("")+
+      '<div class="pk-foot"><span class="hint">Centang semua tujuan yang diperlukan</span><button type="button" class="btn sm primary pk-done">Selesai</button></div>';
+    panel.querySelectorAll("input").forEach(cb=>cb.addEventListener("change",()=>{
+      const n=semua[Number(cb.dataset.i)];
+      let L=lines(ta.value);
+      if(cb.checked){ if(!L.some(l=>cleanTujuan(l).toLowerCase()===n.toLowerCase())) L.push(barisTujuan(field,n)); }
+      else L=L.filter(l=>cleanTujuan(l).toLowerCase()!==n.toLowerCase());
+      ta.value=L.join("\n"); doc[field]=ta.value; fitRows(ta); changed();
+    }));
+    panel.querySelector(".pk-done").addEventListener("click",tutup);
+  }
+  function buka(){ isi(); panel.hidden=false; btn.setAttribute("aria-expanded","true"); }
+  function tutup(){ panel.hidden=true; btn.setAttribute("aria-expanded","false"); }
+  btn.addEventListener("click",()=>panel.hidden?buka():tutup());
+  document.addEventListener("mousedown",e=>{ if(!panel.hidden && !pk.contains(e.target)) tutup(); });
+  document.addEventListener("keydown",e=>{ if(e.key==="Escape" && !panel.hidden) tutup(); });
 });
 $("k-tujuan").value=tujuanList.join("\n");
 $("k-tujuan").addEventListener("input",e=>{tujuanList=lines(e.target.value);store.set(LS_TUJUAN,tujuanList)});
