@@ -439,6 +439,7 @@ const AFTER = () => Number(fmt("jarakPar"))*20;
 // Surat dinas memakai isi menjorok dan spasi 1,15 sebagai bawaan
 const FMT_SURAT = {isiPos:"surat", spasi:"1.15"};
 const isSurat = () => doc.jenis==="surat";
+const tanpaYth = l => String(l).replace(/^\d+[.)]\s*/,"").replace(/^Yth\.?\s*/i,"");
 const fmt = key => doc[key] || (isSurat() && FMT_SURAT[key]) || FMT[key];
 const DEFAULT_KOP = {
   l1:"PEMERINTAH KABUPATEN GARUT",
@@ -521,7 +522,9 @@ $("f-indent").addEventListener("change",e=>{doc.indent=e.target.checked;changed(
 $("f-tte").addEventListener("change",e=>{doc.tte=e.target.checked;changed()});
 $("f-jenis").addEventListener("change",e=>{
   doc.jenis=e.target.value; $("pane-edit").dataset.jenis=doc.jenis;
-  if(doc.jenis==="surat"){ doc.tempatSurat=doc.tempatSurat||"Garut"; doc.diTempat=doc.diTempat||"Garut"; }
+  if(doc.jenis==="surat"){ doc.tempatSurat=doc.tempatSurat||"Garut"; doc.diTempat=doc.diTempat||"Garut";
+    doc.kepada=lines(doc.kepada).map(tanpaYth).join("\n"); }              // surat dinas: "Kepada Yth:" sudah di atas
+  else doc.kepada=lines(doc.kepada).map(l=>/^Yth\.?\s/i.test(l)?l:"Yth. "+l).join("\n");
   fillForm(); changed();
 });
 Object.keys(FMT).forEach(k=>$("f-"+k).addEventListener("change",e=>{doc[k]=e.target.value;changed()}));
@@ -878,7 +881,7 @@ function render(){
       // Surat dinas: tempat-tanggal kanan, Nomor/Sifat/Lampiran/Hal, Kepada Yth. … di …
       '<div class="tgl-surat">'+esc((d.tempatSurat||"Garut")+", "+fmtTanggal(d.tanggal))+'</div>'+
       '<table class="info surat">'+[["Nomor",esc(d.nomor)],["Sifat",esc(d.sifat)],["Lampiran",esc(d.lampiran)],["Hal",esc(d.hal).replace(/\n/g,"<br>")]].map(r=>'<tr><td class="k">'+r[0]+'</td><td class="c">:</td><td>'+r[1]+'</td></tr>').join("")+'</table>'+
-      '<div class="kepada-surat">Kepada Yth:<br>'+(kepada.length?kepada.map(esc).join("<br>"):'<span class="empty">(belum diisi)</span>')+'<br>di<br><span class="di">'+esc(d.diTempat||"")+'</span></div>'
+      '<div class="kepada-surat">Kepada Yth:<br>'+(kepada.length?kepada.map(k=>esc(tanpaYth(k))).join("<br>"):'<span class="empty">(belum diisi)</span>')+'<br>di<br><span class="di">'+esc(d.diTempat||"")+'</span></div>'
     :
       '<div class="judul">NOTA DINAS'+(nomorDiJudul&&d.nomor?'<div class="nomor">NOMOR '+esc(d.nomor)+'</div>':'')+'</div>'+
       '<table class="info">'+rows.map(r=>'<tr><td class="k">'+r[0]+'</td><td class="c">:</td><td>'+r[1]+'</td></tr>').join("")+'</table>'+
@@ -1112,7 +1115,7 @@ function buildDocumentXml(){
     const s1=1300,s2=170,s3=W-s1-s2;
     b+=wtbl([s1,s2,s3],[["Nomor",d.nomor],["Sifat",d.sifat],["Lampiran",d.lampiran],["Hal",d.hal]].map(r=>"<w:tr>"+wtc(s1,wp(wr(r[0])))+wtc(s2,wp(wr(":")))+wtc(s3,(lines(r[1]).map(v=>wp(wr(v))).join("")||wp("")))+"</w:tr>").join(""));
     b+=wp("",{after:120})+wp(wr("Kepada Yth:"));
-    lines(d.kepada).forEach(k=>b+=wp(wr(k)));
+    lines(d.kepada).forEach(k=>b+=wp(wr(tanpaYth(k))));
     b+=wp(wr("di"))+wp(wr(d.diTempat||""),{ind:'w:left="720"'})+wp("",{after:240});
   } else {
   b+=wp(wr("NOTA DINAS",{b:true}),{jc:"center",before:240,after:nomorDiJudul?40:240});
