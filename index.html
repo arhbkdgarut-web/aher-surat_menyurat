@@ -79,7 +79,8 @@ hr.sep{border:0;border-top:1px solid var(--line);margin:4px 0;width:100%}
 .pk-btn{margin-top:6px}
 .pk-panel{position:absolute;left:0;right:0;z-index:9;margin-top:4px;background:var(--panel);border:1px solid var(--line);border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,.15);padding:6px;max-height:320px;overflow:auto}
 .pk-panel label{flex-direction:row;align-items:flex-start;gap:8px;padding:6px 8px;border-radius:4px;cursor:pointer;color:var(--fg);font-weight:400;font-size:13px}
-.pk-panel label:hover{background:var(--accent-soft)}
+.pk-panel label:hover,.pk-panel label.act{background:var(--accent-soft)}
+.pk-panel .kosong{padding:8px;font-size:12px;color:var(--muted)}
 .pk-panel input[type=checkbox]{margin-top:2px;accent-color:var(--accent)}
 .pk-panel .pk-foot{display:flex;justify-content:space-between;align-items:center;padding:6px 8px 2px;border-top:1px solid var(--line);margin-top:4px}
 .arsip-item{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;cursor:pointer;background:var(--panel)}
@@ -203,7 +204,7 @@ table.tbl th{background:#f2f2f2}
 <header class="top">
   <div class="brand">
     <img id="brandLogo" alt="">
-    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver">Versi 16 Okt 2026 · 20.50</small></div>
+    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver">Versi 16 Okt 2026 · 21.00</small></div>
   </div>
   <div class="actions">
     <button class="btn" id="btnNew" type="button">Surat baru</button>
@@ -234,9 +235,7 @@ table.tbl th{background:#f2f2f2}
         </div>
         <label for="f-kepada"><span class="only-nota">Kepada (satu tujuan per baris)</span><span class="only-surat">Kepada Yth. (satu tujuan per baris)</span></label>
         <div class="picker" data-for="kepada">
-          <textarea id="f-kepada" rows="2" autocomplete="off" placeholder="Ketik, misalnya: bupati, sekda, kemenag… lalu pilih"></textarea>
-          <div class="pk-list" hidden></div>
-          <button type="button" class="btn sm pk-btn" aria-expanded="false">Pilih dari daftar ▾</button>
+          <textarea id="f-kepada" rows="2" autocomplete="off" placeholder="Klik untuk memilih dari daftar, atau ketik: bupati, sekda, kemenag…"></textarea>
           <div class="pk-panel" hidden></div>
         </div>
         <label class="check only-nota"><input type="checkbox" id="f-kepadaNum"> Beri nomor pada daftar Kepada</label>
@@ -281,9 +280,7 @@ table.tbl th{background:#f2f2f2}
         <label class="check"><input type="checkbox" id="f-tte"> Tanda tangan elektronik (TTE): kotak QR + catatan BSrE di bawah halaman</label>
         <label for="f-tembusan">Tembusan (opsional, satu per baris)</label>
         <div class="picker" data-for="tembusan">
-          <textarea id="f-tembusan" rows="2" autocomplete="off" placeholder="Ketik, misalnya: bupati, wabup, sekda… lalu pilih"></textarea>
-          <div class="pk-list" hidden></div>
-          <button type="button" class="btn sm pk-btn" aria-expanded="false">Pilih dari daftar ▾</button>
+          <textarea id="f-tembusan" rows="2" autocomplete="off" placeholder="Klik untuk memilih dari daftar, atau ketik: bupati, wabup, sekda…"></textarea>
           <div class="pk-panel" hidden></div>
         </div>
       </fieldset>
@@ -722,77 +719,61 @@ function semuaTujuan(){
 }
 // Bentuk baris saat ditambahkan: nota "Yth. …", surat dinas tanpa Yth. (sudah ada "Kepada Yth:"), tembusan "Yth. …"
 const barisTujuan = (field,n) => (field==="kepada" && isSurat()) ? n : "Yth. "+n;
-// Saran muncul langsung saat mengetik di kolom Kepada / Tembusan, untuk baris tempat kursor berada
+// Kolom Kepada / Tembusan langsung menjadi dropdown: klik untuk mencentang tujuan, atau ketik untuk menyaring
 document.querySelectorAll(".picker").forEach(pk=>{
-  const field=pk.dataset.for, ta=$("f-"+field), list=pk.querySelector(".pk-list");
-  let act=-1, items=[];
+  const field=pk.dataset.for, ta=$("f-"+field), panel=pk.querySelector(".pk-panel");
+  let rows=[], act=-1;
+  const key = s => cleanTujuan(s).toLowerCase();
   const curLine = () => { const v=ta.value, pos=ta.selectionStart, s=v.lastIndexOf("\n",pos-1)+1, e=v.indexOf("\n",pos); return {s, e:e<0?v.length:e, text:v.slice(s,e<0?v.length:e)}; };
-  const others = () => { const c=curLine(); return lines(ta.value.slice(0,c.s)+ta.value.slice(c.e)); };
-  const has = n => others().some(l=>cleanTujuan(l).toLowerCase()===n.toLowerCase());
-  function show(){
-    const typed=cleanTujuan(curLine().text), q=typed.toLowerCase().split(/\s+/).filter(Boolean);
-    if(!q.length && document.activeElement!==ta){ list.hidden=true; return; }
-    items=semuaTujuan().filter(n=>q.every(w=>cocok(n.toLowerCase(),w))).slice(0,8);
-    if(typed && items.some(n=>n.toLowerCase()===typed.toLowerCase()) && items.length===1){ list.hidden=true; return; } // sudah lengkap
-    if(typed && !items.length && typed.split(/\s+/).length>=2) items.push({baru:typed});
-    if(!items.length){ list.hidden=true; return; }
-    act = q.length ? Math.min(Math.max(act,0),items.length-1) : Math.min(act,items.length-1);
-    list.innerHTML = items.map((x,i)=>x.baru
-        ? '<button type="button" class="pk-item new'+(i===act?' act':'')+'" data-i="'+i+'"><span class="ck">+</span><span>Simpan “'+esc(x.baru)+'” ke daftar tujuan</span></button>'
-        : '<button type="button" class="pk-item'+(i===act?' act':'')+'" data-i="'+i+'"><span class="ck">'+(has(x)?"✓":"")+'</span><span>'+esc(x)+'</span></button>').join("")
-      +'<div class="pk-hint">Enter atau klik untuk memilih, lalu ketik tujuan berikutnya di baris baru.</div>';
-    list.hidden=false;
+  // Teks yang sedang diketik di baris kursor (bukan tujuan yang sudah lengkap)
+  const query = () => { const c=curLine().text.trim(), k=key(c); return (!k || semuaTujuan().some(n=>n.toLowerCase()===k)) ? "" : cleanTujuan(c); };
+  const ada = () => new Set(lines(ta.value).map(key));
+  function render(){
+    const q=query(), words=q.toLowerCase().split(/\s+/).filter(Boolean), s=ada();
+    rows=semuaTujuan().filter(n=>words.every(w=>cocok(n.toLowerCase(),w)));
+    if(q && !rows.some(n=>n.toLowerCase()===q.toLowerCase()) && q.split(/\s+/).length>=2) rows.push({baru:q});
+    if(act>=rows.length) act=rows.length-1;
+    if(q && act<0 && rows.length) act=0;
+    panel.innerHTML=(rows.length? rows.map((x,i)=>x.baru
+        ? '<label class="'+(i===act?"act":"")+'" data-i="'+i+'"><input type="checkbox" tabindex="-1"><span>Simpan “'+esc(x.baru)+'” ke daftar dan pakai</span></label>'
+        : '<label class="'+(i===act?"act":"")+'" data-i="'+i+'"><input type="checkbox" tabindex="-1"'+(s.has(x.toLowerCase())?" checked":"")+'><span>'+esc(x)+'</span></label>').join("")
+      : '<div class="kosong">Tidak ada yang cocok. Ketik nama jabatan lengkap untuk menambah tujuan baru.</div>')+
+      '<div class="pk-foot"><span class="hint">Centang beberapa tujuan sekaligus</span><button type="button" class="btn sm primary pk-done">Selesai</button></div>';
+    const a=panel.querySelector("label.act"); if(a) a.scrollIntoView({block:"nearest"});
   }
-  function pick(i){
-    const x=items[i]; if(x===undefined) return;
+  function buka(){ render(); panel.hidden=false; }
+  function tutup(){ panel.hidden=true; act=-1; }
+  function toggle(i){
+    const x=rows[i]; if(x===undefined) return;
     let n=cleanTujuan(x.baru||x);
     if(x.baru && !tujuanList.some(t=>t.toLowerCase()===n.toLowerCase())){ tujuanList.push(n); store.set(LS_TUJUAN,tujuanList); $("k-tujuan").value=tujuanList.join("\n"); }
-    const c=curLine(), v=ta.value;
-    let ins = has(n) ? "" : barisTujuan(field,n);       // sudah ada di baris lain: jangan dobel
-    const after=v.slice(c.e).replace(/^\n/,"");
-    const before=v.slice(0,c.s);
-    ta.value = ins ? before + ins + "\n" + after : before + after;
-    const caret=(ins ? before+ins+"\n" : before).length; ta.setSelectionRange(caret,caret);
+    const typing=!!query(), c=curLine();
+    let L;
+    if(ada().has(n.toLowerCase()) && !x.baru){                 // sudah ada: hapus centang
+      L=lines(ta.value).filter(l=>key(l)!==n.toLowerCase());
+    } else if(typing){                                          // ganti teks yang sedang diketik
+      const v=ta.value; L=lines(v.slice(0,c.s)+barisTujuan(field,n)+v.slice(c.e));
+    } else L=lines(ta.value).concat(barisTujuan(field,n));       // tambah di baris baru
+    ta.value=L.join("\n")+(L.length?"\n":""); ta.setSelectionRange(ta.value.length,ta.value.length);
     doc[field]=ta.value; fitRows(ta); changed();
-    if(!ins) toast(n+" sudah ada di daftar");
-    act=-1; show();
+    act=-1; render();
   }
-  ta.addEventListener("input",()=>{act=0;show()});
-  ta.addEventListener("click",()=>{act=-1;show()});
-  ta.addEventListener("focus",()=>{act=-1;show()});
+  ta.addEventListener("focus",buka);
+  ta.addEventListener("click",()=>{ if(panel.hidden) buka(); else render(); });
+  ta.addEventListener("input",()=>{ act=-1; buka(); });
   ta.addEventListener("keydown",e=>{
-    if(list.hidden) return;
-    if(e.key==="ArrowDown"){act=Math.min(act+1,items.length-1);show();e.preventDefault()}
-    else if(e.key==="ArrowUp" && act>=0){act=Math.max(act-1,0);show();e.preventDefault()}
-    else if((e.key==="Enter"||e.key==="Tab") && act>=0){e.preventDefault();pick(act)}
-    else if(e.key==="Escape"){list.hidden=true;e.preventDefault()}
+    if(panel.hidden){ if(e.key==="ArrowDown"){buka();e.preventDefault()} return; }
+    if(e.key==="ArrowDown"){act=Math.min(act+1,rows.length-1);render();e.preventDefault()}
+    else if(e.key==="ArrowUp"){act=Math.max(act-1,0);render();e.preventDefault()}
+    else if(e.key==="Enter" && act>=0){e.preventDefault();toggle(act)}
+    else if(e.key==="Escape"||e.key==="Tab"){tutup()}
   });
-  list.addEventListener("mousedown",e=>e.preventDefault()); // kursor tetap di kolom
-  list.addEventListener("click",e=>{const b=e.target.closest(".pk-item"); if(b) pick(Number(b.dataset.i));});
-  ta.addEventListener("blur",()=>setTimeout(()=>{list.hidden=true},120));
-});
-// Dropdown centang: pilih tujuan tanpa mengetik
-document.querySelectorAll(".picker").forEach(pk=>{
-  const field=pk.dataset.for, ta=$("f-"+field), btn=pk.querySelector(".pk-btn"), panel=pk.querySelector(".pk-panel");
-  const ada = () => new Set(lines(ta.value).map(l=>cleanTujuan(l).toLowerCase()));
-  function isi(){
-    const s=ada(), semua=semuaTujuan();
-    panel.innerHTML=semua.map((n,i)=>'<label><input type="checkbox" data-i="'+i+'"'+(s.has(n.toLowerCase())?" checked":"")+'><span>'+esc(n)+'</span></label>').join("")+
-      '<div class="pk-foot"><span class="hint">Centang semua tujuan yang diperlukan</span><button type="button" class="btn sm primary pk-done">Selesai</button></div>';
-    panel.querySelectorAll("input").forEach(cb=>cb.addEventListener("change",()=>{
-      const n=semua[Number(cb.dataset.i)];
-      let L=lines(ta.value);
-      if(cb.checked){ if(!L.some(l=>cleanTujuan(l).toLowerCase()===n.toLowerCase())) L.push(barisTujuan(field,n)); }
-      else L=L.filter(l=>cleanTujuan(l).toLowerCase()!==n.toLowerCase());
-      ta.value=L.join("\n"); doc[field]=ta.value; fitRows(ta); changed();
-    }));
-    panel.querySelector(".pk-done").addEventListener("click",tutup);
-  }
-  function buka(){ isi(); panel.hidden=false; btn.setAttribute("aria-expanded","true"); }
-  function tutup(){ panel.hidden=true; btn.setAttribute("aria-expanded","false"); }
-  btn.addEventListener("click",()=>panel.hidden?buka():tutup());
-  document.addEventListener("mousedown",e=>{ if(!panel.hidden && !pk.contains(e.target)) tutup(); });
-  document.addEventListener("keydown",e=>{ if(e.key==="Escape" && !panel.hidden) tutup(); });
+  panel.addEventListener("mousedown",e=>e.preventDefault());     // kursor tetap di kolom
+  panel.addEventListener("click",e=>{
+    if(e.target.closest(".pk-done")){ tutup(); ta.blur(); return; }
+    const lb=e.target.closest("label[data-i]"); if(lb){ e.preventDefault(); toggle(Number(lb.dataset.i)); }
+  });
+  ta.addEventListener("blur",()=>setTimeout(()=>{ if(document.activeElement!==ta) tutup(); },150));
 });
 $("k-tujuan").value=tujuanList.join("\n");
 $("k-tujuan").addEventListener("input",e=>{tujuanList=lines(e.target.value);store.set(LS_TUJUAN,tujuanList)});
