@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Nota Dinas BKD Garut</title>
+<title>Surat Menyurat BKD Garut</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
@@ -196,10 +196,10 @@ table.tbl th{background:#f2f2f2}
 <header class="top">
   <div class="brand">
     <img id="brandLogo" alt="">
-    <div><b>Nota Dinas</b><small id="brandSub">Badan Kepegawaian dan Diklat</small></div>
+    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small></div>
   </div>
   <div class="actions">
-    <button class="btn" id="btnNew" type="button">Nota baru</button>
+    <button class="btn" id="btnNew" type="button">Surat baru</button>
     <button class="btn" id="btnSave" type="button">Simpan</button>
     <button class="btn" id="btnDocx" type="button">Unduh Word</button>
     <button class="btn primary" id="btnPrint" type="button">Cetak / PDF</button>
@@ -209,7 +209,7 @@ table.tbl th{background:#f2f2f2}
 <div class="wrap">
   <aside class="side">
     <div class="tabs" role="tablist">
-      <button class="tab" role="tab" data-tab="edit" aria-selected="true" type="button">Isi nota</button>
+      <button class="tab" role="tab" data-tab="edit" aria-selected="true" type="button">Isi surat</button>
       <button class="tab" role="tab" data-tab="arsip" aria-selected="false" type="button">Arsip <span id="arsipCount"></span></button>
       <button class="tab" role="tab" data-tab="kop" aria-selected="false" type="button">Kop &amp; kertas</button>
     </div>
@@ -936,7 +936,7 @@ function save(auto){
   cur.data=structuredClone(doc); cur.updated=Date.now();
   const ok=store.set(LS_ARSIP,arsip); store.set(LS_CUR,cur.id);
   dirty=false;
-  if(ok){ setStatus("Tersimpan "+new Date(cur.updated).toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"}),true); if(!auto) toast("Nota disimpan ke arsip"); }
+  if(ok){ setStatus("Tersimpan "+new Date(cur.updated).toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"}),true); if(!auto) toast("Surat disimpan ke arsip"); }
   else { setStatus("Gagal menyimpan: penyimpanan peramban penuh atau diblokir. Unduh cadangan atau dokumen Word."); }
   renderArsip();
 }
@@ -967,7 +967,7 @@ function renderArsip(){
   const q=$("cari").value.toLowerCase().trim();
   const items=arsip.slice().sort((a,b)=>b.updated-a.updated).filter(a=>!q||[a.data.hal,a.data.kepada,a.data.nomor,a.data.dari].join(" ").toLowerCase().includes(q));
   const box=$("arsipList"); box.innerHTML="";
-  if(!items.length){box.innerHTML='<p class="hint">'+(q?"Tidak ada nota yang cocok dengan pencarian.":"Arsip kosong. Tekan “Nota baru” untuk mulai.")+'</p>';return}
+  if(!items.length){box.innerHTML='<p class="hint">'+(q?"Tidak ada surat yang cocok dengan pencarian.":"Arsip kosong. Tekan “Surat baru” untuk mulai.")+'</p>';return}
   items.forEach(a=>{
     const el=document.createElement("div"); el.className="arsip-item"+(cur&&a.id===cur.id?" current":""); el.tabIndex=0;
     el.innerHTML='<div class="t">'+esc(a.data.hal||"(tanpa hal)")+'</div>'+
@@ -981,7 +981,7 @@ function renderArsip(){
       if(!del.classList.contains("armed")){del.classList.add("armed");del.textContent="Yakin hapus?";setTimeout(()=>{if(del.isConnected){del.classList.remove("armed");del.textContent="Hapus"}},3000);return}
       arsip=arsip.filter(x=>x.id!==a.id); store.set(LS_ARSIP,arsip);
       if(cur&&cur.id===a.id){ if(arsip.length){openItem(arsip[0])} else {cur=null;newNota()} }
-      renderArsip(); toast("Nota dihapus");
+      renderArsip(); toast("Surat dihapus");
     });
     box.appendChild(el);
   });
@@ -1002,7 +1002,7 @@ function download(name,blob){
 const safeName = s => (s||"Nota Dinas").replace(/[\\/:*?"<>|]+/g," ").replace(/\s+/g," ").trim().slice(0,80);
 $("btnBackup").addEventListener("click",()=>{
   if(dirty) save(true);
-  download("arsip-nota-dinas-"+today()+".json",new Blob([JSON.stringify({versi:1,kop,arsip},null,1)],{type:"application/json"}));
+  download("arsip-surat-menyurat-"+today()+".json",new Blob([JSON.stringify({versi:1,kop,arsip},null,1)],{type:"application/json"}));
 });
 $("fileRestore").addEventListener("change",e=>{
   const f=e.target.files[0]; if(!f) return;
@@ -1011,7 +1011,7 @@ $("fileRestore").addEventListener("change",e=>{
     const ids=new Set(arsip.map(a=>a.id)); let n=0;
     j.arsip.forEach(a=>{if(a&&a.id&&a.data&&!ids.has(a.id)){arsip.push(a);n++}});
     if(j.kop){kop=Object.assign({},DEFAULT_KOP,j.kop);store.set(LS_KOP,kop);fillKop();applyKop()}
-    store.set(LS_ARSIP,arsip); renderArsip(); render(); toast(n+" nota dipulihkan");
+    store.set(LS_ARSIP,arsip); renderArsip(); render(); toast(n+" surat dipulihkan");
   }).catch(()=>toast("Berkas bukan cadangan arsip nota dinas yang valid."));
   e.target.value="";
 });
