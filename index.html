@@ -81,6 +81,10 @@ hr.sep{border:0;border-top:1px solid var(--line);margin:4px 0;width:100%}
 .pk-panel label{flex-direction:row;align-items:flex-start;gap:8px;padding:6px 8px;border-radius:4px;cursor:pointer;color:var(--fg);font-weight:400;font-size:13px}
 .pk-panel label:hover,.pk-panel label.act{background:var(--accent-soft)}
 .pk-panel .kosong{padding:8px;font-size:12px;color:var(--muted)}
+.pj-item{display:block;width:100%;text-align:left;border:0;background:none;padding:7px 9px;border-radius:4px;cursor:pointer;color:var(--fg)}
+.pj-item:hover,.pj-item.act{background:var(--accent-soft)}
+.pj-item b{display:block;font-size:13px}
+.pj-item span{display:block;font-size:12px;color:var(--muted);white-space:pre-line}
 .pk-panel input[type=checkbox]{margin-top:2px;accent-color:var(--accent)}
 .pk-panel .pk-foot{display:flex;justify-content:space-between;align-items:center;padding:6px 8px 2px;border-top:1px solid var(--line);margin-top:4px}
 .arsip-item{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;cursor:pointer;background:var(--panel)}
@@ -205,7 +209,7 @@ table.tbl th{background:#f2f2f2}
 <header class="top">
   <div class="brand">
     <img id="brandLogo" alt="">
-    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 16 Okt 2026 · 21.40</small></div>
+    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 16 Okt 2026 · 21.55</small></div>
   </div>
   <div class="actions">
     <button class="btn" id="btnNew" type="button">Surat baru</button>
@@ -268,10 +272,14 @@ table.tbl th{background:#f2f2f2}
       <hr class="sep">
       <fieldset>
         <legend>Penandatangan</legend>
+        <label for="f-nama">Nama lengkap</label>
+        <div class="picker" id="pj-box">
+          <input type="text" id="f-nama" autocomplete="off" placeholder="Klik untuk memilih pejabat, atau ketik namanya">
+          <div class="pk-panel" id="pj-panel" hidden></div>
+        </div>
+        <p class="hint" style="margin-top:-4px">Memilih nama otomatis mengisi jabatan, pangkat/golongan, dan NIP. Pejabat yang pernah dipakai di arsip otomatis masuk daftar.</p>
         <label>Jabatan
           <textarea id="f-jabatan" rows="2"></textarea></label>
-        <label>Nama lengkap
-          <input type="text" id="f-nama"></label>
         <div class="row2">
           <label>Pangkat/golongan (opsional)
             <input type="text" id="f-pangkat" placeholder="Pembina Tingkat I, IV/b"></label>
@@ -723,7 +731,7 @@ function semuaTujuan(){
 // Bentuk baris saat ditambahkan: nota "Yth. …", surat dinas tanpa Yth. (sudah ada "Kepada Yth:"), tembusan "Yth. …"
 const barisTujuan = (field,n) => (field==="kepada" && isSurat()) ? n : "Yth. "+n;
 // Kolom Kepada / Tembusan langsung menjadi dropdown: klik untuk mencentang tujuan, atau ketik untuk menyaring
-document.querySelectorAll(".picker").forEach(pk=>{
+document.querySelectorAll(".picker[data-for]").forEach(pk=>{
   const field=pk.dataset.for, ta=$("f-"+field), panel=pk.querySelector(".pk-panel");
   let rows=[], act=-1;
   const key = s => cleanTujuan(s).toLowerCase();
@@ -778,6 +786,48 @@ document.querySelectorAll(".picker").forEach(pk=>{
   });
   ta.addEventListener("blur",()=>setTimeout(()=>{ if(document.activeElement!==ta) tutup(); },150));
 });
+// Pejabat penanda tangan: diambil dari nota/surat di arsip (versi terbaru per nama)
+function daftarPejabat(){
+  const m=new Map();
+  arsip.slice().sort((a,b)=>b.updated-a.updated).forEach(a=>{
+    const d=a.data, n=String(d.nama||"").trim(); if(!n || /^\[/.test(n)) return;
+    const k=n.toLowerCase(); const e=m.get(k);
+    if(e){ e.c++; return; }
+    m.set(k,{nama:n,jabatan:d.jabatan||"",pangkat:d.pangkat||"",nip:d.nip||"",c:1});
+  });
+  return [...m.values()].sort((a,b)=>b.c-a.c||a.nama.localeCompare(b.nama));
+}
+(function(){
+  const inp=$("f-nama"), panel=$("pj-panel"), box=$("pj-box"); let rows=[], act=-1;
+  function render(){
+    const q=inp.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+    const semua=daftarPejabat(), cocokSemua=semua.some(x=>x.nama.toLowerCase()===inp.value.toLowerCase().trim());
+    rows=(cocokSemua?semua:semua.filter(x=>q.every(w=>(x.nama+" "+x.jabatan).toLowerCase().split(/[\s,.\n]+/).some(k=>k.startsWith(w))))).slice(0,10);
+    if(act>=rows.length) act=rows.length-1;
+    panel.innerHTML = rows.length ? rows.map((x,i)=>'<button type="button" class="pj-item'+(i===act?" act":"")+'" data-i="'+i+'"><b>'+esc(x.nama)+'</b><span>'+esc(x.jabatan.replace(/\n/g," "))+(x.pangkat?" · "+esc(x.pangkat):"")+(x.nip?" · NIP "+esc(x.nip):"")+'</span></button>').join("")
+      : '<div class="kosong">'+(semua.length?"Tidak ada pejabat yang cocok. Isi nama, jabatan, pangkat, dan NIP sekali saja; setelah surat disimpan, pejabat ini muncul di daftar.":"Belum ada pejabat di arsip. Isi nama, jabatan, pangkat, dan NIP sekali saja; setelah surat disimpan, pejabat ini muncul di daftar.")+'</div>';
+    panel.hidden=false;
+  }
+  function pilih(i){
+    const x=rows[i]; if(!x) return;
+    doc.nama=x.nama; doc.jabatan=x.jabatan; doc.pangkat=x.pangkat; doc.nip=x.nip;
+    fillForm(); changed(); panel.hidden=true; act=-1;
+    toast("Penanda tangan diisi: "+x.nama);
+  }
+  inp.addEventListener("focus",()=>{act=-1;render()});
+  inp.addEventListener("click",()=>{ if(panel.hidden) render(); });
+  inp.addEventListener("input",()=>{act=0;render()});
+  inp.addEventListener("keydown",e=>{
+    if(panel.hidden) return;
+    if(e.key==="ArrowDown"){act=Math.min(act+1,rows.length-1);render();e.preventDefault()}
+    else if(e.key==="ArrowUp"){act=Math.max(act-1,0);render();e.preventDefault()}
+    else if(e.key==="Enter" && act>=0){e.preventDefault();pilih(act)}
+    else if(e.key==="Escape"||e.key==="Tab"){panel.hidden=true}
+  });
+  panel.addEventListener("mousedown",e=>e.preventDefault());
+  panel.addEventListener("click",e=>{const b=e.target.closest(".pj-item"); if(b) pilih(Number(b.dataset.i));});
+  inp.addEventListener("blur",()=>setTimeout(()=>{panel.hidden=true},150));
+})();
 $("k-tujuan").value=tujuanList.join("\n");
 $("k-tujuan").addEventListener("input",e=>{tujuanList=lines(e.target.value);store.set(LS_TUJUAN,tujuanList)});
 
