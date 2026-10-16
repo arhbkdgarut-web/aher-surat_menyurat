@@ -34,6 +34,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .brand img{width:28px;height:30px}
 .brand b{font-weight:600;font-size:15px;letter-spacing:.01em}
 .brand small{display:block;color:var(--muted);font-size:12px}
+.brand small.ver{font-size:10.5px;opacity:.8}
 .actions{display:flex;flex-wrap:wrap;gap:8px}
 .btn{border:1px solid var(--line);background:var(--panel);padding:7px 12px;border-radius:6px;cursor:pointer;white-space:nowrap}
 .btn:hover{border-color:var(--accent)}
@@ -196,7 +197,7 @@ table.tbl th{background:#f2f2f2}
 <header class="top">
   <div class="brand">
     <img id="brandLogo" alt="">
-    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small></div>
+    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver">Versi 16 Okt 2026 · 20.40</small></div>
   </div>
   <div class="actions">
     <button class="btn" id="btnNew" type="button">Surat baru</button>
@@ -509,6 +510,7 @@ const runsHtml = text => runs(text).map(r=>r.b?"<b>"+keepHtml(r.t)+"</b>":r.i?"<
 const FIELDS=["kepada","dari","tanggal","nomor","sifat","lampiran","hal","isi","lampText","lampJudul","tempatSurat","diTempat","pangkat","jabatan","nama","nip","tembusan"];
 function fillForm(){
   migrate(doc);
+  if(isSurat() && /^\s*(\d+[.)]\s*)?Yth\./im.test(doc.kepada||"")) doc.kepada=lines(doc.kepada).map(tanpaYth).join("\n"); // surat dinas tanpa Yth. di tiap baris
   FIELDS.forEach(f=>{$("f-"+f).value=doc[f]||""});
   $("f-kepadaNum").checked=!!doc.kepadaNum;
   $("f-indent").checked=doc.indent!==false;
