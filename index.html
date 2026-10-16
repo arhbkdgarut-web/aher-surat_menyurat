@@ -151,9 +151,12 @@ table.info.surat td.k{width:.985in} /* sama dengan nota dinas, agar "lurus setel
 table.rinci{border-collapse:collapse;margin:2pt 0;line-height:var(--spasi,1.5);text-align:left}
 table.rinci td{padding:0;vertical-align:top}
 .ttd .pangkat{margin-top:1pt}
-.tte{box-sizing:border-box;margin-right:1pt;display:grid;grid-template-columns:1.15in 1fr;border:.75pt solid #000;width:3.4in;margin-left:auto;font-size:8pt;line-height:1.25;text-align:center;break-inside:avoid;margin-top:18pt}
-.tte .qr{border-right:.75pt solid #000;display:flex;align-items:center;justify-content:center;color:#999;min-height:1.15in;font-size:7.5pt}
-.tte .tx{padding:4pt 6pt;display:flex;flex-direction:column;gap:6pt;justify-content:space-between}
+.tte{box-sizing:border-box;margin-right:1pt;display:grid;grid-template-columns:1.24in 1fr;border:.75pt solid #000;width:3.375in;height:1.25in;margin-left:auto;font-size:7pt;line-height:1.2;text-align:center;break-inside:avoid;margin-top:18pt}
+.tte .qr{border-right:.75pt solid #000;display:flex;align-items:center;justify-content:center}
+.tte .qr span{width:1.06in;height:1.06in;border:1px dashed #bbb;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:7pt}
+.tte .tx{padding:4pt 3pt;display:flex;flex-direction:column;gap:4pt;justify-content:space-between;min-width:0}
+.tte .tx .ket{display:flex;align-items:center;justify-content:center;gap:4pt}
+.tte .tx .ket img{width:.17in;height:.17in}
 .tte .tx .nama{font-weight:bold;text-decoration:underline}
 .tte-foot{font-size:8pt;text-align:center;margin-top:36pt;line-height:1.3}
 .keep{break-inside:avoid}
@@ -209,7 +212,7 @@ table.tbl th{background:#f2f2f2}
 <header class="top">
   <div class="brand">
     <img id="brandLogo" alt="">
-    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 16 Okt 2026 · 21.55</small></div>
+    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 16 Okt 2026 · 22.15</small></div>
   </div>
   <div class="actions">
     <button class="btn" id="btnNew" type="button">Surat baru</button>
@@ -312,7 +315,7 @@ table.tbl th{background:#f2f2f2}
             <select id="f-labelKepada"><option value="Kepada">Kepada :</option><option value="Yth.">Yth. :</option></select></label>
         </div>
         <div class="row2">
-          <label>Letak nomor surat
+          <label class="only-nota">Letak nomor (nota dinas)
             <select id="f-nomorPos"><option value="tabel">Di daftar (Nomor :)</option><option value="judul">Di bawah judul NOTA DINAS</option></select></label>
           <label>Posisi isi surat
             <select id="f-isiPos"><option value="titikdua">Lurus setelah titik dua</option><option value="margin">Dari tepi kiri kertas</option><option value="surat">Menjorok 3,8 cm (gaya surat dinas)</option></select></label>
@@ -922,10 +925,11 @@ function blocksHtml(text,lamp){
   return html+hold;
 }
 const lampJudul = d => (d.lampJudul||"").trim() || (d.jenis==="surat"?"LAMPIRAN SURAT":"LAMPIRAN NOTA DINAS");
+const TTE_ICON="data:image/png;base64,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";
 const TTE_NOTE="Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik yang diterbitkan oleh Balai Besar Sertifikasi Elektronik (BSrE), Badan Siber dan Sandi Negara (BSSN).";
 function ttdHtml(d){
   const jab=esc(d.jabatan), nama='<div class="nama">'+esc(d.nama)+'</div>', pk=d.pangkat?'<div class="pangkat">'+esc(d.pangkat)+'</div>':'', nip=d.nip?'<div>NIP. '+esc(d.nip)+'</div>':'';
-  if(d.tte) return '<div class="tte"><div class="qr">QR TTE</div><div class="tx"><div>Ditandatangani secara elektronik oleh :</div><div class="jab" style="font-weight:bold;white-space:pre-line">'+jab+'</div><div>'+nama+pk+nip+'</div></div></div>';
+  if(d.tte) return '<div class="tte"><div class="qr"><span>tempat QR</span></div><div class="tx"><div class="ket"><img alt="" src="'+TTE_ICON+'">Ditandatangani secara elektronik oleh :</div><div class="jab" style="font-weight:bold;white-space:pre-line">'+jab+'</div><div>'+nama+pk+nip+'</div></div></div>';
   return '<div class="ttd"><div class="box"><div class="jab">'+jab+'</div><div class="gap"></div>'+nama+pk+nip+'</div></div>';
 }
 function render(){
@@ -1151,6 +1155,13 @@ function blocksXml(text,lamp,P0,FL,W){
   });
   return b;
 }
+function imgRun(rid,cx,cy,id,name){
+  return '<w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="'+cx+'" cy="'+cy+'"/><wp:docPr id="'+id+'" name="'+name+'"/>'+
+    '<a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">'+
+    '<pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="'+id+'" name="'+name+'.png"/><pic:cNvPicPr/></pic:nvPicPr>'+
+    '<pic:blipFill><a:blip r:embed="'+rid+'"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>'+
+    '<pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="'+cx+'" cy="'+cy+'"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>';
+}
 function logoRun(){
   const cx=Math.round(0.82*914400), cy=Math.round(cx*logoInfo.h/logoInfo.w);
   return '<w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="'+cx+'" cy="'+cy+'"/><wp:docPr id="1" name="Logo"/>'+
@@ -1211,12 +1222,13 @@ function buildDocumentXml(){
   const tail = sz => wp(wr(d.nama,{b:true,u:true,sz}),{jc:"center"})+(d.pangkat?wp(wr(d.pangkat,{sz}),{jc:"center"}):"")+(d.nip?wp(wr("NIP. "+d.nip,{sz}),{jc:"center"}):"");
   let ttd;
   if(d.tte){ // kotak TTE: tempat QR di kiri, keterangan di kanan
-    const q=1650, r2=W-Math.floor(W/2)-q, B='<w:tblBorders>'+["top","left","bottom","right","insideV"].map(s=>'<w:'+s+' w:val="single" w:sz="6" w:space="0" w:color="000000"/>').join("")+'</w:tblBorders>';
-    ttd='<w:tbl><w:tblPr><w:tblW w:w="'+(q+r2)+'" w:type="dxa"/><w:tblLayout w:type="fixed"/>'+B+'<w:tblCellMar><w:left w:w="60" w:type="dxa"/><w:right w:w="60" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid><w:gridCol w:w="'+q+'"/><w:gridCol w:w="'+r2+'"/></w:tblGrid><w:tr><w:trPr><w:trHeight w:val="1650"/></w:trPr>'+
-      wtc(q,wp(wr("QR TTE",{sz:14}),{jc:"center"}),"center")+wtc(r2,wp(wr("Ditandatangani secara elektronik oleh :",{sz:16}),{jc:"center",after:120})+jabP(16,true)+wp("",{after:120})+tail(16),"center")+"</w:tr></w:tbl>"+wp("");
+    const q=1786, r2=4860-q, B='<w:tblBorders>'+["top","left","bottom","right","insideV"].map(s=>'<w:'+s+' w:val="single" w:sz="6" w:space="0" w:color="000000"/>').join("")+'</w:tblBorders>';
+    ttd='<w:tbl><w:tblPr><w:tblW w:w="'+(q+r2)+'" w:type="dxa"/><w:tblLayout w:type="fixed"/>'+B+'<w:tblCellMar><w:left w:w="40" w:type="dxa"/><w:right w:w="40" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid><w:gridCol w:w="'+q+'"/><w:gridCol w:w="'+r2+'"/></w:tblGrid><w:tr><w:trPr><w:trHeight w:val="1800" w:hRule="exact"/></w:trPr>'+
+      wtc(q,wp(wr("",{sz:14}),{jc:"center"}),"center")+wtc(r2,wp(imgRun("rIdTte",Math.round(0.17*914400),Math.round(0.17*914400),2,"tte")+wr(" Ditandatangani secara elektronik oleh :",{sz:14}),{jc:"center",after:80})+jabP(14,true)+wp("",{line:120})+tail(14),"center")+"</w:tr></w:tbl>"+wp("");
   } else ttd = jabP()+wp("")+wp("")+wp("")+wp("")+tail();
   b+=wp("",{line});
-  b+=wtbl([h,W-h],"<w:tr><w:trPr><w:cantSplit/></w:trPr>"+wtc(h)+wtc(W-h,ttd)+"</w:tr>"); // tanda tangan tidak terbelah halaman
+  const hl = d.tte ? W-4860 : h, hr = W-hl;
+  b+=wtbl([hl,hr],"<w:tr><w:trPr><w:cantSplit/></w:trPr>"+wtc(hl)+wtc(hr,ttd)+"</w:tr>"); // tanda tangan tidak terbelah halaman
   const tem=lines(d.tembusan);
   if(tem.length){
     b+=wp("",{line})+wp(wr("Tembusan:",{sz:22}));
@@ -1254,6 +1266,7 @@ const DOCRELS='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relations
   '<Relationship Id="rIdStyles" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'+
   '<Relationship Id="rIdHdr1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/header" Target="header1.xml"/>'+
   '<Relationship Id="rIdFtr1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/>'+
+  '<Relationship Id="rIdTte" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/tte.png"/>'+
   '<Relationship Id="rIdLogo" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/logo.png"/></Relationships>';
 const footerXml = () => '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:ftr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'+wp(wr(TTE_NOTE,{sz:16}),{jc:"center"})+'</w:ftr>';
 const HDRRELS='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
@@ -1289,7 +1302,7 @@ function buildDocx(){
     {name:"[Content_Types].xml",data:CT},{name:"_rels/.rels",data:RELS},
     {name:"word/document.xml",data:buildDocumentXml()},{name:"word/styles.xml",data:stylesXml(fmt("huruf")==="tnr"?"Times New Roman":"Arial")},
     {name:"word/_rels/document.xml.rels",data:DOCRELS},
-    {name:"word/header1.xml",data:buildHeaderXml()},{name:"word/footer1.xml",data:footerXml()},{name:"word/_rels/header1.xml.rels",data:HDRRELS},{name:"word/media/logo.png",data:dataUrlBytes(kop.logo||DEFAULT_LOGO)}
+    {name:"word/header1.xml",data:buildHeaderXml()},{name:"word/footer1.xml",data:footerXml()},{name:"word/_rels/header1.xml.rels",data:HDRRELS},{name:"word/media/logo.png",data:dataUrlBytes(kop.logo||DEFAULT_LOGO)},{name:"word/media/tte.png",data:dataUrlBytes(TTE_ICON)}
   ]);
 }
 $("btnDocx").addEventListener("click",()=>{
