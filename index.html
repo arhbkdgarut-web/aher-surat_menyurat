@@ -763,8 +763,9 @@ document.querySelectorAll(".picker[data-for]").forEach(pk=>{
     if(x.baru && !tujuanList.some(t=>t.toLowerCase()===n.toLowerCase())){ tujuanList.push(n); store.set(LS_TUJUAN,tujuanList); $("k-tujuan").value=tujuanList.join("\n"); }
     const typing=!!query(), c=curLine();
     let L;
-    if(ada().has(n.toLowerCase()) && !x.baru){                 // sudah ada: hapus centang
-      L=lines(ta.value).filter(l=>key(l)!==n.toLowerCase());
+    if(ada().has(n.toLowerCase()) && !x.baru){                 // sudah ada: hapus centang (dan ketikan yang sedang disaring)
+      const v=ta.value, sisa = typing ? v.slice(0,c.s)+v.slice(c.e) : v;
+      L=lines(sisa).filter(l=>key(l)!==n.toLowerCase());
     } else if(typing){                                          // ganti teks yang sedang diketik
       const v=ta.value; L=lines(v.slice(0,c.s)+barisTujuan(field,n)+v.slice(c.e));
     } else L=lines(ta.value).concat(barisTujuan(field,n));       // tambah di baris baru
