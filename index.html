@@ -275,7 +275,7 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
 <header class="top">
   <div class="brand">
     <img id="brandLogo" alt="">
-    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 19.30</small></div>
+    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 19.45</small></div>
   </div>
   <div class="actions">
     <button class="btn" id="btnNew" type="button">Surat baru</button>
@@ -384,12 +384,6 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
         </div>
       </fieldset>
       <hr class="sep">
-      <details class="lipat" id="lampBox">
-        <summary id="lampSum">+ Tambah lampiran (halaman baru)</summary>
-        <textarea id="f-lampText" class="isi-box" rows="14" placeholder="Tempel atau ketik isi lampiran di sini.&#10;Baris diawali I. II. III. menjadi bab, 1. 2. 3. atau a. b. c. menjadi butir, kolom tabel dipisah tanda |"></textarea>
-        <p class="hint">Dicetak di halaman baru setelah tanda tangan. Nomor dan tanggal diambil dari surat; kolom Lampiran di kepala surat terisi “1 (satu) berkas” sendiri.</p>
-      </details>
-      <hr class="sep">
       <details class="lipat" id="adv">
         <summary>Pengaturan lanjutan <span class="hint" id="advSum"></span></summary>
         <p class="hint">Semua sudah diatur otomatis. Ubah hanya bila perlu.</p>
@@ -419,6 +413,12 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
         </div>
         <label class="check"><input type="checkbox" id="f-indent"> Baris pertama paragraf menjorok ke kanan</label>
         <div><button type="button" class="btn sm" id="advReset">Kembalikan semua ke otomatis</button></div>
+      </details>
+      <hr class="sep">
+      <details class="lipat" id="lampBox">
+        <summary id="lampSum">+ Tambah lampiran (halaman baru)</summary>
+        <textarea id="f-lampText" class="isi-box" rows="14" placeholder="Tempel atau ketik isi lampiran di sini.&#10;Baris diawali I. II. III. menjadi bab, 1. 2. 3. atau a. b. c. menjadi butir, kolom tabel dipisah tanda |"></textarea>
+        <p class="hint">Dicetak di halaman baru setelah tanda tangan. Nomor dan tanggal diambil dari surat; kolom Lampiran di kepala surat terisi “1 (satu) berkas” sendiri.</p>
       </details>
       <datalist id="pangkatList"></datalist>
     </form>
