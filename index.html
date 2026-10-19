@@ -275,7 +275,7 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
 <header class="top">
   <div class="brand">
     <img id="brandLogo" alt="">
-    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 20.00</small></div>
+    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 20.30</small></div>
   </div>
   <div class="actions">
     <button class="btn" id="btnNew" type="button">Surat baru</button>
@@ -355,7 +355,7 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
         <p class="hint">Boleh menempel <b>seluruh surat dari Word atau PDF</b> (Ctrl+A, Ctrl+C, lalu Ctrl+V di sini). Kepala surat, tanda tangan, tembusan, dan lampiran otomatis dipindah ke kolomnya.</p>
         <p class="hint">Satu baris = satu paragraf. Baris yang diawali <code>1.</code> <code>2.</code> atau <code>a.</code> <code>b.</code> otomatis menjadi butir bernomor. Baris pendek tanpa titik di akhir menjadi sub judul tebal (awali dengan <code>#</code> bila perlu). Kolom tabel dipisah tanda <code>|</code>. Tebalkan kata dengan <code>**kata**</code>.</p>
         <p class="hint">Rincian ditulis <code>Hari/Tanggal : 28 September 2026</code>; nama harinya diisi otomatis. Tekan Enter di akhir butir untuk nomor berikutnya.</p>
-        <p class="hint"><b>Menjorok ke dalam:</b> tekan <kbd>Tab</kbd> di awal baris (bisa beberapa baris sekaligus), <kbd>Shift</kbd>+<kbd>Tab</kbd> untuk mengembalikan. Baris menjorok di bawah rincian menjadi lanjutan atau sub-nya, misalnya:<br><code>Waktu : 1. Hari Senin s.d Kamis</code><br><code>&emsp;&emsp;Sesi I : 09.00 s.d 10.30 WIB</code> (2× Tab)<br><code>&emsp;2. Hari Jumat</code> (1× Tab)<br><code>Tempat : Aula Kodim 0611 Garut</code><br><code>&emsp;Jln. Veteran No.1</code> (1× Tab)</p>
+        <p class="hint"><b>Menjorok ke dalam otomatis:</b> ketik semua baris rata kiri saja, tidak perlu Tab atau spasi. Baris di bawah <code>Waktu</code>, <code>Tempat</code>, <code>Catatan</code>, dan sejenisnya ditempatkan sendiri:<br><code>Waktu : 1. Hari Senin s.d Kamis</code><br><code>Sesi I : 09.00 s.d 10.30 WIB</code> → masuk ke bawah “Hari Senin”<br><code>2. Hari Jumat</code> → lurus dengan “1.”<br><code>Tempat : Aula Kodim 0611 Garut</code><br><code>Jln. Veteran No.1</code> → lurus dengan “Aula”<br>Kalimat berikutnya (misalnya “Selanjutnya, …”) kembali menjadi paragraf. Saat Anda selesai mengetik, kotak ini ikut dirapikan.</p>
         </details>
       </fieldset>
       <hr class="sep">
@@ -761,12 +761,32 @@ function tingkatBaris(raw,W){
     return {lv,x,pas,st:st.slice()};
   });
 }
+// Susunan otomatis rincian: baris di bawah "Waktu/Tempat/Catatan …" ditempatkan sendiri, tanpa Tab.
+// Waktu : 1. … → "2. …" di bawahnya, "Sesi I : …" lebih dalam; baris biasa = lanjutan; kalimat panjang = paragraf baru.
+const RINCI_UTAMA=/^(Hari\s*\/\s*Tanggal|Hari|Tanggal|Waktu|Pukul|Jam|Tempat|Lokasi|Alamat|Acara|Agenda|Kegiatan|Pakaian|Catatan|Keterangan|Peserta|Narasumber|Pemateri)[\s\u200A]*:[\s\u200A]*\S/i;
+const PARAGRAF_BARU=/^(Selanjutnya|Demikian|Sehubungan|Berkenaan|Berdasarkan|Adapun|Atas|Mengingat|Dengan|Untuk|Kami|Bersama|Oleh|Saudara|Bapak|Mohon)\b/i;
+const SUB_LABEL=/^(Sesi|Gelombang|Kloter|Tahap|Shift|Angkatan|Kelompok|Ruang)\b/i;
+const akhirRincian = l => l.length>90 || /:$/.test(l) || PARAGRAF_BARU.test(l) || (/\.$/.test(l) && l.split(/\s+/).length>=6);
+function tingkatOtomatis(raw,W){
+  const inf=tingkatBaris(raw,W), lv=inf.map(x=>x.kosong?-1:x.lv), auto=raw.map(()=>false);
+  let on=false, num=false;
+  raw.forEach((s,i)=>{ const l=s.trim(); if(!l) return;
+    if(RINCI_UTAMA.test(l)){ lv[i]=0; auto[i]=true; on=true; num=/:[\s\u200A]*\d{1,2}[.)]\s/.test(l); return; }
+    if(!on) return;
+    if(akhirRincian(l)){ on=false; lv[i]=0; return; }
+    auto[i]=true;
+    if(/^\d{1,2}[.)]\s/.test(l)){ if(num){ lv[i]=1; return; } on=false; auto[i]=false; return; }
+    if(AWAL_RINCI.test(l) && !SUB_LABEL.test(l)){ lv[i]=num?2:0; return; }
+    lv[i]=num?2:1;
+  });
+  return {lv,auto,inf};
+}
 // Ganti menjorok setiap baris dengan spasi yang tepat sampai posisi lurusnya
 // dan samakan letak titik dua dalam satu kelompok rincian ("Waktu        : …")
 function luruskan(text){
   if(!text) return text||"";
-  const W=ukurEditor(), sw=W(" "), raw=String(text).replace(/\r/g,"").split("\n"), t0=tingkatBaris(raw,W), lv=t0.map(x=>x.kosong?-1:x.lv);
-  const asli=i=>t0[i].lv>0 && !t0[i].pas; // menjorok yang tidak merujuk teks di atasnya (misalnya teks PDF mentah) dibiarkan
+  const W=ukurEditor(), sw=W(" "), raw=String(text).replace(/\r/g,"").split("\n"), oto=tingkatOtomatis(raw,W), t0=oto.inf, lv=oto.lv;
+  const asli=i=>!oto.auto[i] && lv[i]>0 && !t0[i].pas; // menjorok yang tidak merujuk teks di atasnya (misalnya teks PDF mentah) dibiarkan
   // 1) titik dua sekelompok rincian setingkat dibuat lurus
   const ls=raw.map(s=>s.trim()), grup=[]; let buka={};
   ls.forEach((l,i)=>{ if(lv[i]<0 || asli(i)) return;
@@ -800,7 +820,7 @@ function geserBaris(lines,i,mundur,W){
 function textToBlocks(text,lamp){
   // Tingkat menjorok: baris yang lurus dengan teks setelah titik dua / setelah "1." di atasnya
   const raw=String(text||"").replace(/\r/g,"").split("\n").map(s=>s.replace(/ /g," ")).filter(s=>s.trim());
-  const info=tingkatBaris(raw), lvs=info.map(x=>x.lv), ls=raw.map(s=>s.trim());
+  const lvs=tingkatOtomatis(raw).lv, ls=raw.map(s=>s.trim());
   const DIG=/^(\d{1,2})([.)])\s*(.+)$/, LET=/^([a-z])([.)])\s+(.+)$/;
   const ROM=lamp?/^([IVX]{1,4})(?:[.)]\s*|\s+)(.+)$/:/^([IVX]{1,4})(?:[.)]|\t)\s*(.+)$/;
   const isItem=l=>DIG.test(l||"")||LET.test(l||"");
@@ -913,7 +933,6 @@ function toBlocks(ls,lamp){
 }
 // Teks PDF kehilangan menjorok: baris sesudah rincian utama (Waktu, Tempat, Catatan …) yang bukan rincian utama
 // dianggap lanjutan/sub-nya dan diberi Tab; sub butir "2. Hari Jumat" di bawah "Waktu : 1. …" juga
-const RINCI_UTAMA=/^(Hari\s*\/\s*Tanggal|Hari|Tanggal|Waktu|Pukul|Jam|Tempat|Lokasi|Alamat|Acara|Agenda|Kegiatan|Pakaian|Catatan|Keterangan|Peserta|Narasumber|Pemateri)\s*:\s*\S/i;
 function subRincian(ls){
   let on=false, num=false;
   return ls.map(l=>{
@@ -1541,7 +1560,7 @@ const KONSEP=[
   hal:"Pemanggilan",
   isi:["Disampaikan dengan hormat, dalam rangka [klarifikasi data kepegawaian / verifikasi berkas], dengan ini kami mohon Saudara untuk hadir pada:",
    "Hari/Tanggal : [Senin, 2 November 2026]","Waktu : [09.00] WIB","Tempat : Badan Kepegawaian dan Diklat Kabupaten Garut","\tJalan Pahlawan Nomor 47 Garut","Menghadap : [nama pejabat/petugas]",
-   "dengan membawa [dokumen yang perlu dibawa].","Demikian untuk dilaksanakan."]},
+   "Saudara diminta membawa [dokumen yang perlu dibawa].","Demikian untuk dilaksanakan."]},
  {id:"laporan",grup:"Nota dinas",nama:"Nota dinas laporan hasil kegiatan",ket:"Dasar, pelaksanaan, hasil, saran",jenis:"nota",sifat:"Biasa",kepada:"Yth. Kepala Badan Kepegawaian dan Diklat Kabupaten Garut",
   hal:"Laporan Hasil [nama kegiatan]",
   isi:["Disampaikan dengan hormat, berdasarkan [surat tugas/disposisi Nomor … tanggal …], bersama ini kami laporkan hasil pelaksanaan [nama kegiatan] sebagai berikut:",
