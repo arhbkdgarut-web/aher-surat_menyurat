@@ -260,7 +260,7 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
 <header class="top">
   <div class="brand">
     <img id="brandLogo" alt="">
-    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 16.30</small></div>
+    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 17.00</small></div>
   </div>
   <div class="actions">
     <button class="btn" id="btnNew" type="button">Surat baru</button>
@@ -620,6 +620,7 @@ const FIELDS=["kepada","dari","tanggal","nomor","sifat","lampiran","hal","isi","
 function fillForm(){
   migrate(doc);
   if(isSurat() && /^\s*(\d+[.)]\s*)?Yth\./im.test(doc.kepada||"")) doc.kepada=lines(doc.kepada).map(tanpaYth).join("\n"); // surat dinas tanpa Yth. di tiap baris
+  doc.isi=luruskan(doc.isi); doc.lampText=luruskan(doc.lampText); // menjorok lama (Tab) jadi lurus dengan teks di atasnya
   FIELDS.forEach(f=>{$("f-"+f).value=doc[f]||""});
   $("f-indent").checked=doc.indent!==false;
   $("f-jenis").value=doc.jenis||"nota"; $("pane-edit").dataset.jenis=doc.jenis||"nota";
@@ -695,12 +696,79 @@ function migrate(d){
   if(d.lampText===undefined) d.lampText=blocks(d.lamp).flatMap(itemLines).join("\n");
   return d;
 }
+/* ---------- Menjorok di kotak isi: lurus dengan teks setelah titik dua ---------- */
+// Lebar teks di kotak isi (piksel) dengan huruf kotak itu sendiri
+let edCtx=null;
+function ukurEditor(){
+  const c=edCtx||(edCtx=document.createElement("canvas").getContext("2d")), cs=getComputedStyle($("f-isi"));
+  c.font=cs.fontStyle+" "+cs.fontWeight+" "+cs.fontSize+" "+cs.fontFamily;
+  const memo={}; return s=>memo[s]??(memo[s]=c.measureText(s).width);
+}
+// Jarak tepat x piksel: spasi biasa lalu hair space (± 0,4 px) agar lurus persis
+const HS="\u200A", padPx=(x,W)=>{ if(x<=0) return ""; const sw=W(" "), hw=W(HS)||sw, n=Math.floor(x/sw); return " ".repeat(n)+HS.repeat(Math.round((x-n*sw)/hw)); };
+const LEAD=/^[\t \u2009\u200A]*/;
+const AWAL_BUTIR=/^(\d{1,2}[.)]|[a-z][.)])\s+/, AWAL_RINCI=/^([A-Za-z][A-Za-z\/ .()-]{0,24}?\s*:\s*)(\S.*)$/;
+// Jangkar = posisi tempat baris berikutnya boleh lurus: teks setelah "1. " atau setelah "Label : "
+function jangkar(t,x0,lv,W){
+  let m; const a=[];
+  if((m=t.match(AWAL_BUTIR))) a.push({x:x0+W(m[0]),lv:lv+1});
+  else if((m=t.match(AWAL_RINCI))){ const vx=x0+W(m[1]); a.push({x:vx,lv:lv+1}); const n=m[2].match(AWAL_BUTIR); if(n) a.push({x:vx+W(n[0]),lv:lv+2}); }
+  return a;
+}
+// Setiap baris: tingkat (lv) dan posisi lurusnya (x). Tab lama dihitung satu tingkat per Tab.
+function tingkatBaris(raw,W){
+  W=W||ukurEditor(); const sw=W(" "); let st=[];
+  return raw.map(s=>{
+    const lead=s.match(LEAD)[0], t=s.trim(); let lv=0, x=0, pas=false;
+    if(!t) return {lv:0,x:0,kosong:true};
+    if(/\t/.test(lead)){ lv=Math.min(4,(lead.match(/\t/g)||[]).length); const a=st.filter(j=>j.lv===lv).pop(); x=a?a.x:lv*W("    "); pas=true; }
+    else if(lead.length){ const x0=W(lead), c=st.filter(j=>j.x<=x0+sw*.6);
+      const a=c.length?c.reduce((p,j)=>j.x>p.x?j:p):null; lv=a?a.lv:1; x=a?a.x:x0; pas=!!a && Math.abs(a.x-x0)<=sw*.6; }
+    st = lv ? st.filter(j=>j.lv<=lv) : [];
+    st.push(...jangkar(t,x,lv,W));
+    return {lv,x,pas,st:st.slice()};
+  });
+}
+// Ganti menjorok setiap baris dengan spasi yang tepat sampai posisi lurusnya
+// dan samakan letak titik dua dalam satu kelompok rincian ("Waktu        : …")
+function luruskan(text){
+  if(!text) return text||"";
+  const W=ukurEditor(), sw=W(" "), raw=String(text).replace(/\r/g,"").split("\n"), t0=tingkatBaris(raw,W), lv=t0.map(x=>x.kosong?-1:x.lv);
+  const asli=i=>t0[i].lv>0 && !t0[i].pas; // menjorok yang tidak merujuk teks di atasnya (misalnya teks PDF mentah) dibiarkan
+  // 1) titik dua sekelompok rincian setingkat dibuat lurus
+  const ls=raw.map(s=>s.trim()), grup=[]; let buka={};
+  ls.forEach((l,i)=>{ if(lv[i]<0 || asli(i)) return;
+    Object.keys(buka).forEach(k=>{ if(+k>lv[i]) delete buka[k]; });
+    const m=!AWAL_BUTIR.test(l) && l.match(AWAL_RINCI);
+    if(m && m[1].replace(/\s*:\s*$/,"").split(/\s+/).length<=3){ if(!buka[lv[i]]) grup.push(buka[lv[i]]=[]); buka[lv[i]].push(i); }
+    else delete buka[lv[i]]; });
+  grup.filter(g=>g.length>1).forEach(g=>{
+    const lab=g.map(i=>ls[i].match(AWAL_RINCI)[1].replace(/\s*:\s*$/,"")), x=Math.max(...lab.map(W))+sw;
+    g.forEach((i,k)=>{ ls[i]=lab[k]+(padPx(x-W(lab[k]),W)||" ")+": "+ls[i].match(AWAL_RINCI)[2]; }); });
+  // 2) baris menjorok diberi spasi sampai tepat di bawah teks yang dirujuknya
+  const tab=ls.map((l,i)=>lv[i]>0?"\t".repeat(lv[i])+l:l), inf=tingkatBaris(tab,W);
+  return tab.map((s,i)=>asli(i) ? raw[i] : lv[i]>0 ? (padPx(inf[i].x,W)||" ")+ls[i] : ls[i]).join("\n");
+}
+// Untuk "Rapikan otomatis": menjorok yang lurus dengan teks di atasnya dijadikan Tab agar tidak hilang
+function tabDariSpasi(text){
+  const raw=String(text||"").replace(/\r/g,"").split("\n"), inf=tingkatBaris(raw);
+  return raw.map((s,i)=>inf[i].lv>0 && inf[i].pas ? "\t".repeat(inf[i].lv)+s.trim() : s).join("\n");
+}
+// Tab: maju ke jangkar berikutnya; Shift+Tab: mundur
+function geserBaris(lines,i,mundur,W){
+  const sw=W(" "), t=lines[i].trim(); // baris yang baru berisi spasi pun bisa digeser
+  const prev=tingkatBaris(lines.slice(0,i),W).filter(x=>!x.kosong).pop(), st=prev?prev.st:[];
+  const ld=lines[i].match(LEAD)[0], x0=!ld.length ? 0 : t ? tingkatBaris(lines.slice(0,i+1),W)[i].x : W(ld.replace(/\t/g,"    "));
+  let x;
+  if(mundur){ const c=st.filter(j=>j.x<x0-sw*.6).map(j=>j.x); x=c.length?Math.max(...c):0; }
+  else { const c=st.filter(j=>j.x>x0+sw*.6).map(j=>j.x); x=c.length?Math.min(...c):x0+W("    "); }
+  return padPx(x,W)+t;
+}
 // Isi satu kotak: jenis tiap baris dikenali dari bentuknya
 function textToBlocks(text,lamp){
-  // Tingkat menjorok dari awal baris: satu Tab (atau dua spasi) = satu tingkat
+  // Tingkat menjorok: baris yang lurus dengan teks setelah titik dua / setelah "1." di atasnya
   const raw=String(text||"").replace(/\r/g,"").split("\n").map(s=>s.replace(/ /g," ")).filter(s=>s.trim());
-  const lvOf=s=>{ const w=s.match(/^[\t ]*/)[0]; return Math.min(4,(w.match(/\t/g)||[]).length+Math.floor((w.match(/ /g)||[]).length/2)); };
-  const lvs=raw.map(lvOf), ls=raw.map(s=>s.trim());
+  const info=tingkatBaris(raw), lvs=info.map(x=>x.lv), ls=raw.map(s=>s.trim());
   const DIG=/^(\d{1,2})([.)])\s*(.+)$/, LET=/^([a-z])([.)])\s+(.+)$/;
   const ROM=lamp?/^([IVX]{1,4})(?:[.)]\s*|\s+)(.+)$/:/^([IVX]{1,4})(?:[.)]|\t)\s*(.+)$/;
   const isItem=l=>DIG.test(l||"")||LET.test(l||"");
@@ -826,6 +894,7 @@ function subRincian(ls){
   });
 }
 function parseNota(text){
+  text=tabDariSpasi(text);
   let L=text.replace(/\r/g,"").split("\n").map(s=>s.replace(/ /g," ")).map(s=>s.match(/^\t*/)[0]+s.replace(/ {2,}/g," ").trim()).filter(s=>s.trim()); // spasi ganda dari PDF dirapatkan; Tab di awal baris (menjorok) dipertahankan
   const out={};
   // Lampiran: semua setelah baris "LAMPIRAN ..." (tanpa titik dua)
@@ -853,6 +922,8 @@ function parseNota(text){
       if(key==="tanggal"){const iso=parseTanggal(v); if(iso) out.tanggal=iso; last=key; continue;}
       out[key]=v; last=key; continue;
     }
+    // Hal lebih dari satu baris: baris pendek sesudahnya yang belum berakhir titik/titik dua
+    if(last==="hal" && l.length<=80 && !/[.:]$/.test(l) && /^[A-Z]/.test(l) && !/^(Disampaikan|Dengan|Sehubungan|Berdasarkan|Menindaklanjuti|Bersama|Dalam|Yth)\b/i.test(l) && (out.jenis==="surat" || l.length<=70)){ out.hal+="\n"+l; continue; }
     if(!sawHead) continue;                       // baris kop / judul sebelum Yth.
     if(last==="kepada" && /^\d+[.)]\s*/.test(l)){out.kepadaNum=true; out.kepada+="\n"+l.replace(/^\d+[.)]\s*/,""); continue;}
     break;
@@ -908,8 +979,9 @@ const romawiKeAngka = r => { const v={I:1,V:5,X:10}; let n=0; for(let i=0;i<r.le
   const ta=e.target, v=ta.value, a=ta.selectionStart, z=ta.selectionEnd;
   e.preventDefault();
   const s=v.lastIndexOf("\n",a-1)+1, end=v.indexOf("\n",z>a&&v[z-1]==="\n"?z-1:z), eol=end<0?v.length:end;
-  const blok=v.slice(s,eol).split("\n");
-  const baru=blok.map(l=>e.shiftKey ? l.replace(/^(\t| {1,2})/,"") : (l.trim()?"\t"+l:l)).join("\n");
+  const W=ukurEditor(), semua=v.split("\n"), i0=v.slice(0,s).split("\n").length-1, n=v.slice(s,eol).split("\n").length;
+  for(let i=i0;i<i0+n;i++) semua[i]=geserBaris(semua,i,e.shiftKey,W);
+  const baru=semua.slice(i0,i0+n).join("\n");
   ta.setRangeText(baru,s,eol);
   if(a===z){ const d=baru.length-(eol-s); ta.selectionStart=ta.selectionEnd=Math.max(s,a+d); } else { ta.selectionStart=s; ta.selectionEnd=s+baru.length; }
   ta.dispatchEvent(new Event("input",{bubbles:true}));
@@ -918,19 +990,22 @@ const romawiKeAngka = r => { const v={I:1,V:5,X:10}; let n=0; for(let i=0;i<r.le
   if(e.key!=="Enter"||e.shiftKey||e.ctrlKey||e.altKey||e.isComposing) return;
   const ta=e.target, v=ta.value, pos=ta.selectionStart; if(pos!==ta.selectionEnd) return;
   const s=v.lastIndexOf("\n",pos-1)+1, end=v.indexOf("\n",pos), eol=end<0?v.length:end; if(pos!==eol) return;
-  const baris=v.slice(s,eol), sp=baris.match(/^[\t ]*/)[0];
+  const baris=v.slice(s,eol), sp=baris.match(LEAD)[0];
   const m=baris.slice(sp.length).match(/^(\d{1,2}|[a-z]|[IVX]{1,4})([.)])(\s+)(.*)$/);
   const r=!m && baris.slice(sp.length).match(/^[A-Za-z][^:\n]{0,28}:\s*(\d{1,2})([.)])\s+\S/); // "Waktu : 1. Senin" → baris berikut "	2. "
   if(m){
     e.preventDefault();
-    if(!m[4].trim()){ ta.setRangeText(sp.slice(1),s,eol,"end"); } // butir kosong: akhiri daftar / naik satu tingkat
+    if(!m[4].trim()){ const ls=v.slice(0,eol).split("\n"), b=geserBaris(ls.slice(0,-1).concat("x"),ls.length-1,true,ukurEditor()); ta.setRangeText(b.slice(0,-1),s,eol,"end"); } // butir kosong: akhiri daftar / naik satu tingkat
     else { const tag=m[1], next=/^\d/.test(tag)?String(+tag+1):/^[a-z]$/.test(tag)?String.fromCharCode(tag.charCodeAt(0)+1):ROMAN(romawiKeAngka(tag)+1);
       ta.setRangeText("\n"+sp+next+m[2]+" ",pos,pos,"end"); }
-  } else if(r){ e.preventDefault(); ta.setRangeText("\n"+sp+"\t"+(+r[1]+1)+r[2]+" ",pos,pos,"end"); }
+  } else if(r){ e.preventDefault(); const W=ukurEditor(), j=tingkatBaris(v.slice(0,eol).split("\n"),W).pop().st.find(a=>a.lv===1)||{x:0};
+    ta.setRangeText("\n"+padPx(j.x,W)+(+r[1]+1)+r[2]+" ",pos,pos,"end"); }
   else if(sp){ e.preventDefault(); ta.setRangeText(baris.trim()?"\n"+sp:"",baris.trim()?pos:s,pos,"end"); } // baris menjorok: baris baru ikut menjorok
   else return;
   ta.dispatchEvent(new Event("input",{bubbles:true}));
 }));
+// Selesai mengetik (keluar dari kotak): menjorok dan titik dua dirapikan lagi
+["isi","lampText"].forEach(f=>$("f-"+f).addEventListener("blur",e=>{ const v=luruskan(e.target.value); if(v!==e.target.value){ e.target.value=v; doc[f]=v; changed(); } }));
 // Setiap tempelan langsung dirapikan: bagian kepala dipindah, baris terpotong dari PDF disambung
 $("f-isi").addEventListener("paste",()=>setTimeout(()=>rapikan(true),0));
 
@@ -1786,6 +1861,9 @@ function toast(t){const e=$("toast");e.textContent=t;e.classList.add("show");cle
 
 /* ---------- Mulai ---------- */
 fillKop(); applyKop(); fillForm(); render(); renderArsip();
+// Huruf antarmuka baru termuat: hitung ulang spasi menjorok agar tetap lurus
+if(document.fonts) document.fonts.ready.then(()=>{ ["isi","lampText"].forEach(f=>{ const el=$("f-"+f), v=luruskan(el.value);
+  if(v!==el.value && document.activeElement!==el){ el.value=v; doc[f]=v; } }); });
 setStatus(cur?"Tersimpan":"Belum disimpan",!!cur);
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{fitPaper();markPages()});
 window.__test={buildDocx,buildDocumentXml};
