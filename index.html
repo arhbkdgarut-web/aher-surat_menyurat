@@ -275,7 +275,7 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
 <header class="top">
   <div class="brand">
     <img id="brandLogo" alt="">
-    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 19.00</small></div>
+    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 19.30</small></div>
   </div>
   <div class="actions">
     <button class="btn" id="btnNew" type="button">Surat baru</button>
@@ -410,8 +410,6 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
         <div class="row2">
           <label class="only-nota">Letak nomor (nota dinas)
             <select id="f-nomorPos"><option value="">Otomatis</option><option value="tabel">Di daftar (Nomor :)</option><option value="judul">Di bawah judul NOTA DINAS</option></select></label>
-          <label>Posisi isi surat
-            <select id="f-isiPos"><option value="">Otomatis</option><option value="titikdua">Lurus setelah titik dua</option><option value="margin">Dari tepi kiri kertas</option><option value="surat">Menjorok 3,8 cm (gaya surat dinas)</option></select></label>
         </div>
         <div class="row2">
           <label>Spasi baris
@@ -572,11 +570,12 @@ const FMT = {nomorPos:"tabel", isiPos:"titikdua", huruf:"arial", spasi:"1.5", ja
 const LINE = () => Math.round(240*Number(fmt("spasi")));
 const AFTER = () => Number(fmt("jarakPar"))*20;
 // Surat dinas memakai isi menjorok dan spasi 1,15 sebagai bawaan
-const FMT_SURAT = {isiPos:"surat", spasi:"1.15"};
+const FMT_SURAT = {spasi:"1.15"};
 const isSurat = () => doc.jenis==="surat";
 const tanpaYth = l => String(l).replace(/^\d+[.)]\s*/,"").replace(/^Yth\.?\s*/i,"");
 const fmtAuto = key => (isSurat() && FMT_SURAT[key]) || FMT[key];
-const fmt = key => doc[key] || fmtAuto(key);
+// Isi surat selalu lurus dengan teks setelah titik dua di kepala surat (baku, tidak perlu dipilih)
+const fmt = key => key==="isiPos" ? "titikdua" : (doc[key] || fmtAuto(key));
 const DEFAULT_KOP = {
   l1:"PEMERINTAH KABUPATEN GARUT",
   l2:"BADAN KEPEGAWAIAN DAN DIKLAT",
@@ -681,7 +680,7 @@ function segarkanOtomatis(){
   const s=!(doc.nomor||"").trim() && saranNomor(); $("nomorSaran").hidden=!s; if(s){ $("nomorSaran").textContent="Pakai nomor berikutnya: "+s; $("nomorSaran").dataset.v=s; }
   const nb=textToBlocks(doc.lampText,true).length; $("lampSum").textContent = nb ? "Lampiran ("+nb+" bagian, halaman baru)" : "+ Tambah lampiran (halaman baru)";
   const huruf={arial:"Arial",tnr:"Times New Roman"}[fmt("huruf")], pos={titikdua:"isi lurus titik dua",margin:"isi dari tepi",surat:"isi menjorok"}[fmt("isiPos")];
-  $("advSum").textContent="· "+huruf+" · spasi "+String(fmt("spasi")).replace(".",",")+" · "+pos;
+  $("advSum").textContent="· "+huruf+" · spasi "+String(fmt("spasi")).replace(".",",");
   periksa();
 }
 FIELDS.forEach(f=>$("f-"+f).addEventListener("input",e=>{doc[f]=e.target.value;changed()}));
@@ -1689,18 +1688,18 @@ postMessage({__mintaKabarSrikandi:1},"*");
 /* ---------- Bentuk surat: pilihan siap pakai, satu klik memasang semua aturan format ---------- */
 // mini: garis-garis gambaran halaman [kiri%, atas%, lebar%, jenis]
 const BENTUK=[
- {id:"s-menjorok",jenis:"surat",nama:"Isi menjorok",ket:"Gaya BKD: isi mulai 3,8 cm, spasi 1,15, Arial",
-  f:{isiPos:"surat",spasi:"1.15",huruf:"arial",jarakPar:"0",indent:true}},
- {id:"s-rata",jenis:"surat",nama:"Isi rata kiri",ket:"Isi dari tepi kiri, spasi 1,15, Arial",
-  f:{isiPos:"margin",spasi:"1.15",huruf:"arial",jarakPar:"0",indent:true}},
- {id:"s-tnr",jenis:"surat",nama:"Times, spasi 1",ket:"Isi menjorok, Times New Roman, spasi 1, jarak 6 pt",
-  f:{isiPos:"surat",spasi:"1",huruf:"tnr",jarakPar:"6",indent:true}},
- {id:"n-titikdua",jenis:"nota",nama:"Lurus titik dua",ket:"Standar: isi lurus setelah titik dua, spasi 1,5, Arial",
-  f:{isiPos:"titikdua",spasi:"1.5",huruf:"arial",jarakPar:"0",nomorPos:"tabel",indent:true}},
- {id:"n-tepi",jenis:"nota",nama:"Isi dari tepi",ket:"Nomor di bawah judul, isi dari tepi kiri, Times New Roman",
-  f:{isiPos:"margin",spasi:"1.5",huruf:"tnr",jarakPar:"0",nomorPos:"judul",indent:false,labelKepada:"Yth."}},
- {id:"n-rapat",jenis:"nota",nama:"Rapat, spasi 1",ket:"Isi lurus titik dua, spasi 1, jarak 6 pt antarparagraf",
-  f:{isiPos:"titikdua",spasi:"1",huruf:"arial",jarakPar:"6",nomorPos:"tabel",indent:true}}
+ {id:"s-standar",jenis:"surat",nama:"Standar",ket:"Arial, spasi 1,15",
+  f:{spasi:"1.15",huruf:"arial",jarakPar:"0",indent:true}},
+ {id:"s-tnr",jenis:"surat",nama:"Times, spasi 1",ket:"Times New Roman, spasi 1, jarak 6 pt antarparagraf",
+  f:{spasi:"1",huruf:"tnr",jarakPar:"6",indent:true}},
+ {id:"s-longgar",jenis:"surat",nama:"Spasi 1,5",ket:"Arial, spasi 1,5",
+  f:{spasi:"1.5",huruf:"arial",jarakPar:"0",indent:true}},
+ {id:"n-standar",jenis:"nota",nama:"Standar",ket:"Arial, spasi 1,5, nomor di daftar",
+  f:{spasi:"1.5",huruf:"arial",jarakPar:"0",nomorPos:"tabel",indent:true}},
+ {id:"n-judul",jenis:"nota",nama:"Nomor di judul",ket:"Nomor di bawah judul NOTA DINAS, Times New Roman, tanpa menjorok",
+  f:{spasi:"1.5",huruf:"tnr",jarakPar:"0",nomorPos:"judul",indent:false,labelKepada:"Yth."}},
+ {id:"n-rapat",jenis:"nota",nama:"Rapat, spasi 1",ket:"Arial, spasi 1, jarak 6 pt antarparagraf",
+  f:{spasi:"1",huruf:"arial",jarakPar:"6",nomorPos:"tabel",indent:true}}
 ];
 // Gambar mini halaman: kop, kepala surat, lalu isi sesuai posisi & spasi bentuk itu
 function miniHalaman(b){
@@ -1709,7 +1708,7 @@ function miniHalaman(b){
   let y=16;
   if(b.jenis==="surat"){ g(60,y,30); y+=5; [0,1,2].forEach(()=>{ g(10,y,45,"t"); y+=4; }); y+=2; g(10,y,30); y+=4; g(10,y,22); y+=6; }
   else { g(35,y,30,"t"); y+=5; if(f.nomorPos==="judul"){ g(38,y,24,"t"); y+=5; } [0,1,2].forEach(()=>{ g(10,y,55); y+=4; }); g(10,y,80); y+=5; }
-  const x0=f.isiPos==="surat"?36:f.isiPos==="titikdua"?30:10, step=f.spasi==="1"?3.6:f.spasi==="1.15"?4:5.2, gap=Number(f.jarakPar)?2:0;
+  const x0=30, step=f.spasi==="1"?3.6:f.spasi==="1.15"?4:5.2, gap=Number(f.jarakPar)?2:0;
   for(let p=0;p<3 && y<92;p++){ for(let r=0;r<3 && y<92;r++){ const ind=r===0&&f.indent?8:0; g(x0+ind,y,90-x0-ind); y+=step; } y+=gap; }
   return '<span class="mini" aria-hidden="true">'+L.join("")+'</span>';
 }
