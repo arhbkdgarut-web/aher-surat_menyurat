@@ -198,7 +198,7 @@ table.tbl th{background:#f2f2f2}
 .lamp-meta{display:grid;grid-template-columns:.75in auto;font-size:11pt;margin:2pt 0 12pt}
 .point-tabel textarea{font-family:var(--mono);font-size:12px}
 .point-bab textarea{font-weight:600}
-.isi-box{min-height:260px;font-size:13.5px;line-height:1.5}
+.isi-box{min-height:260px;font-size:13.5px;line-height:1.5;font-family:Arial,"Liberation Sans",Helvetica,sans-serif}
 .paste{background:var(--accent-soft);border-radius:8px;padding:12px}
 .paste legend{float:left;width:100%}
 
@@ -275,7 +275,7 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
 <header class="top">
   <div class="brand">
     <img id="brandLogo" alt="">
-    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 19.45</small></div>
+    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 20.00</small></div>
   </div>
   <div class="actions">
     <button class="btn" id="btnNew" type="button">Surat baru</button>
@@ -732,7 +732,7 @@ function migrate(d){
 // Lebar teks di kotak isi (piksel) dengan huruf kotak itu sendiri
 let edCtx=null;
 function ukurEditor(){
-  const c=edCtx||(edCtx=document.createElement("canvas").getContext("2d")), cs=getComputedStyle($("f-isi"));
+  const c=edCtx||(edCtx=document.createElement("canvas").getContext("2d")), cs=getComputedStyle($("f-isi")); // huruf kotak isi: Arial
   c.font=cs.fontStyle+" "+cs.fontWeight+" "+cs.fontSize+" "+cs.fontFamily;
   const memo={}; return s=>memo[s]??(memo[s]=c.measureText(s).width);
 }
@@ -821,6 +821,7 @@ function textToBlocks(text,lamp){
       }
       return push({k:"paragraf",t:l});
     }
+    if(last && last.k==="rincian" && !last.lv && /^[(a-z]/.test(l) && !LET.test(l)){ const row=last.rows[last.rows.length-1]; (row.sub=row.sub||[]).push({lv:1,t:l}); return; } // lanjutan rincian, mis. "(sepuluh ribu rupiah)"
     if((m=l.match(/^#\s*(.+)$/))) return out.push({k:"judul",t:m[1]});
     if((m=l.match(DIG))) return out.push({k:"butir",tag:m[1]+m[2],t:m[3]});
     if((m=l.match(LET))) return out.push({k:"huruf",tag:m[1]+m[2],t:m[3]});
@@ -891,7 +892,7 @@ function parseTanggal(s){
   return m[3]+"-"+String(b+1).padStart(2,"0")+"-"+String(m[1]).padStart(2,"0");
 }
 // Baris pendek tanpa tanda baca akhir dianggap sub judul
-const looksJudul = l => l.length<=90 && !/[.:;,]$/.test(l) && l.split(/\s+/).length<=12 && !/^\d/.test(l);
+const looksJudul = l => l.length<=90 && !/[.:;,]$/.test(l) && l.split(/\s+/).length<=12 && /^[A-Z]/.test(l);
 function toBlocks(ls,lamp){
   const out=[]; let m;
   const isItem = l => /^(\d{1,2}|[a-z])[.)]\s/.test(l||"");
@@ -1690,8 +1691,6 @@ postMessage({__mintaKabarSrikandi:1},"*");
 const BENTUK=[
  {id:"s-standar",jenis:"surat",nama:"Standar",ket:"Arial, spasi 1,15",
   f:{spasi:"1.15",huruf:"arial",jarakPar:"0",indent:true}},
- {id:"s-tnr",jenis:"surat",nama:"Times, spasi 1",ket:"Times New Roman, spasi 1, jarak 6 pt antarparagraf",
-  f:{spasi:"1",huruf:"tnr",jarakPar:"6",indent:true}},
  {id:"s-longgar",jenis:"surat",nama:"Spasi 1,5",ket:"Arial, spasi 1,5",
   f:{spasi:"1.5",huruf:"arial",jarakPar:"0",indent:true}},
  {id:"n-standar",jenis:"nota",nama:"Standar",ket:"Arial, spasi 1,5, nomor di daftar",
