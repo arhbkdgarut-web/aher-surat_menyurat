@@ -172,6 +172,7 @@ table.info.surat td.k{width:.985in} /* sama dengan nota dinas, agar "lurus setel
 table.rinci{border-collapse:collapse;margin:0 0 var(--jarak,0pt);line-height:var(--spasi,1.5);text-align:left} /* jarak sesudah rincian = jarak antar paragraf */
 table.rinci td{padding:0;vertical-align:top}
 table.rinci.rsub{margin:0;line-height:inherit}
+.paper .isi table.rinci .nl,.paper .isi table.rinci p{margin-bottom:0} /* tanpa celah di dalam rincian */
 .isi .lv p{text-indent:0}
 .ttd .pangkat{margin-top:1pt}
 .tte{box-sizing:border-box;margin-right:1pt;display:grid;grid-template-columns:1.24in 1fr;border:.75pt solid #000;width:3.375in;height:1.25in;margin-left:auto;font-size:7pt;line-height:1.2;text-align:center;break-inside:avoid;margin-top:18pt}
@@ -246,7 +247,7 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
 .bentuk .mini i{position:absolute;height:2px;background:#8a958e;border-radius:1px}
 .bentuk .mini i.k{background:#1f6b45;height:3px}
 .bentuk .mini i.t{background:#c7a12f}
-.isi-alat{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
+.isi-alat{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:4px;position:sticky;top:-16px;z-index:4;background:var(--panel);padding:8px 0 6px;border-bottom:1px solid var(--line)} /* tetap terlihat saat kotak isi digulir */
 .isi-alat .btn{font-weight:600}
 .isi-alat span{font-size:11.5px;color:var(--muted);flex:1 1 140px;min-width:0}
 .isi-alat select{flex:1 1 100%;min-width:0}
@@ -299,7 +300,7 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
 <header class="top">
   <div class="brand">
     <img id="brandLogo" alt="">
-    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 22.30</small></div>
+    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 22.45</small></div>
   </div>
   <div class="actions">
     <button class="btn" id="btnNew" type="button">Surat baru</button>
