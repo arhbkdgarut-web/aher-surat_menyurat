@@ -158,7 +158,10 @@ details.bantuan .hint{margin-top:6px}
 .cek button:hover{text-decoration:underline}
 .cek .ok{color:var(--accent);font-weight:600}
 .badge{display:inline-block;margin-left:6px;min-width:18px;padding:0 5px;border-radius:9px;background:var(--gold);color:#000;font-size:11px;line-height:18px;text-align:center}
-#pane-edit[data-jenis="surat"] .only-nota,#pane-edit[data-jenis="nota"] .only-surat{display:none!important}
+#pane-edit[data-jenis="surat"] .only-nota,#pane-edit[data-jenis="nota"] .only-surat,#pane-kop[data-jenis="surat"] .only-nota,#pane-kop[data-jenis="nota"] .only-surat{display:none!important}
+#sisipKalimat{width:100%;font-weight:600}
+fieldset{min-width:0}
+.aturan-intro{margin-bottom:6px}
 .tgl-surat{text-align:right;margin-top:14pt}
 table.info.surat{margin-top:10pt}
 table.info.surat td.k{width:.985in} /* sama dengan nota dinas, agar "lurus setelah titik dua" presisi */
@@ -245,7 +248,8 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
 .bentuk .mini i.t{background:#c7a12f}
 .isi-alat{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
 .isi-alat .btn{font-weight:600}
-.isi-alat span{font-size:11.5px;color:var(--muted)}
+.isi-alat span{font-size:11.5px;color:var(--muted);flex:1 1 140px;min-width:0}
+.isi-alat select{flex:1 1 100%;min-width:0}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:6px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
 .toast.show{opacity:1}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
@@ -278,7 +282,7 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
 <header class="top">
   <div class="brand">
     <img id="brandLogo" alt="">
-    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 21.30</small></div>
+    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 22.00</small></div>
   </div>
   <div class="actions">
     <button class="btn" id="btnNew" type="button">Surat baru</button>
@@ -301,7 +305,7 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" data-tab="edit" aria-selected="true" type="button">Isi surat</button>
       <button class="tab" role="tab" data-tab="arsip" aria-selected="false" type="button">Arsip <span id="arsipCount"></span></button>
-      <button class="tab" role="tab" data-tab="kop" aria-selected="false" type="button">Kop &amp; kertas</button>
+      <button class="tab" role="tab" data-tab="kop" aria-selected="false" type="button">Aturan</button>
     </div>
 
     <form class="pane" id="pane-edit" autocomplete="off">
@@ -312,8 +316,6 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
           <button type="button" class="btn" data-jenis="nota">Nota Dinas</button>
           <button type="button" class="btn" data-jenis="surat">Surat Dinas</button>
         </div>
-        <div class="bentuk-lbl">Bentuk surat <small>klik salah satu, aturannya terpasang sendiri</small></div>
-        <div class="bentuk" id="bentukPilih" role="group" aria-label="Bentuk surat"></div>
         <select id="f-jenis" hidden><option value="nota">Nota Dinas</option><option value="surat">Surat Dinas (surat keluar)</option></select>
         <div class="cek" id="cekList" hidden></div>
         <label for="f-kepada">Kepada</label>
@@ -331,16 +333,15 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
         </div>
         <div class="row2">
           <label>Sifat
-            <input type="text" id="f-sifat" list="sifatList" placeholder="Biasa"></label>
+            <input type="text" id="f-sifat" list="dl-sifat" placeholder="Biasa"></label>
           <label>Lampiran
-            <input type="text" id="f-lampiran" placeholder="otomatis"></label>
+            <input type="text" id="f-lampiran" list="dl-lampiran" placeholder="otomatis"></label>
         </div>
-        <datalist id="sifatList"><option value="Biasa"><option value="Segera"><option value="Sangat Segera"><option value="Penting"><option value="Rahasia"></datalist>
       </fieldset>
       <hr class="sep">
       <fieldset>
         <legend>Isi surat</legend>
-        <div class="isi-alat" data-for="f-isi"><button type="button" class="btn sm" data-geser="kiri" title="Geser baris ke kiri (Shift+Tab)">⇤ Geser kiri</button><button type="button" class="btn sm" data-geser="kanan" title="Geser baris ke kanan (Tab)">Geser kanan ⇥</button><span>Taruh kursor di baris (atau blok beberapa baris), lalu klik</span></div>
+        <div class="isi-alat" data-for="f-isi"><select id="sisipKalimat" aria-label="Sisipkan kalimat siap pakai"><option value="">＋ Sisipkan kalimat…</option></select><button type="button" class="btn sm" data-geser="kiri" title="Geser baris ke kiri (Shift+Tab)">⇤ Geser kiri</button><button type="button" class="btn sm" data-geser="kanan" title="Geser baris ke kanan (Tab)">Geser kanan ⇥</button><span>Taruh kursor di baris (atau blok beberapa baris), lalu klik</span></div>
         <textarea id="f-isi" class="isi-box" rows="20" placeholder="Tempel atau ketik isi nota di sini, dari paragraf pembuka sampai penutup."></textarea>
         <div class="actions"><button class="btn sm" type="button" id="btnParse">Rapikan otomatis</button></div>
         <details class="bantuan"><summary>Cara menulis isi</summary>
@@ -378,34 +379,18 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
       </fieldset>
       <hr class="sep">
       <details class="lipat" id="adv">
-        <summary>Pengaturan lanjutan <span class="hint" id="advSum"></span></summary>
-        <p class="hint">Semua sudah diatur otomatis. Ubah hanya bila perlu.</p>
+        <summary>Lainnya (terisi otomatis) <span class="hint" id="advSum"></span></summary>
+        <p class="hint">Sudah terisi sendiri. Klik kolomnya untuk memilih dari daftar bila ingin mengganti.</p>
         <label>Dari
-          <input type="text" id="f-dari" placeholder="otomatis dari jabatan penanda tangan"></label>
+          <input type="text" id="f-dari" list="dl-dari" placeholder="otomatis dari jabatan penanda tangan"></label>
         <div class="row2 only-surat">
           <label>Tempat surat dibuat
-            <input type="text" id="f-tempatSurat" placeholder="otomatis"></label>
+            <input type="text" id="f-tempatSurat" list="dl-tempatSurat" placeholder="otomatis"></label>
           <label>Tempat tujuan (di …)
-            <input type="text" id="f-diTempat" placeholder="otomatis"></label>
+            <input type="text" id="f-diTempat" list="dl-diTempat" placeholder="otomatis"></label>
         </div>
         <label>Judul lampiran
-          <input type="text" id="f-lampJudul" placeholder="otomatis"></label>
-        <div class="row2">
-          <label>Huruf
-            <select id="f-huruf"><option value="">Otomatis</option><option value="arial">Arial</option><option value="tnr">Times New Roman</option></select></label>
-        </div>
-        <div class="row2">
-          <label class="only-nota">Letak nomor (nota dinas)
-            <select id="f-nomorPos"><option value="">Otomatis</option><option value="tabel">Di daftar (Nomor :)</option><option value="judul">Di bawah judul NOTA DINAS</option></select></label>
-        </div>
-        <div class="row2">
-          <label>Spasi baris
-            <select id="f-spasi"><option value="">Otomatis</option><option value="1">1</option><option value="1.15">1,15</option><option value="1.5">1,5</option><option value="2">2</option></select></label>
-          <label>Jarak antar paragraf
-            <select id="f-jarakPar"><option value="">Otomatis</option><option value="0">Tanpa jarak</option><option value="3">Kecil (3 pt)</option><option value="6">Sedang (6 pt)</option><option value="12">Besar (12 pt)</option></select></label>
-        </div>
-        <label class="check"><input type="checkbox" id="f-indent"> Baris pertama paragraf menjorok ke kanan</label>
-        <div><button type="button" class="btn sm" id="advReset">Kembalikan semua ke otomatis</button></div>
+          <input type="text" id="f-lampJudul" list="dl-lampJudul" placeholder="otomatis"></label>
       </details>
       <hr class="sep">
       <details class="lipat" id="lampBox">
@@ -415,6 +400,7 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
         <p class="hint">Dicetak di halaman baru setelah tanda tangan. Nomor dan tanggal diambil dari surat; kolom Lampiran di kepala surat terisi “1 (satu) berkas” sendiri.</p>
       </details>
       <datalist id="pangkatList"></datalist>
+      <div id="dlWadah" hidden></div>
     </form>
 
     <div class="pane" id="pane-arsip" hidden>
@@ -450,6 +436,36 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
     </div>
 
     <form class="pane" id="pane-kop" hidden autocomplete="off">
+      <p class="hint aturan-intro">Semua aturan ada di sini. Bentuk &amp; format berlaku untuk surat yang sedang dibuka (dan ikut terbawa ke surat baru sejenis); yang lain berlaku untuk semua surat.</p>
+      <fieldset>
+        <legend>Bentuk &amp; format surat</legend>
+        <div class="bentuk-lbl">Bentuk surat <small>klik salah satu</small></div>
+        <div class="bentuk" id="bentukPilih" role="group" aria-label="Bentuk surat"></div>
+        <div class="row2">
+          <label>Huruf
+            <select id="f-huruf"><option value="">Otomatis</option><option value="arial">Arial</option><option value="tnr">Times New Roman</option></select></label>
+        </div>
+        <div class="row2">
+          <label class="only-nota">Letak nomor (nota dinas)
+            <select id="f-nomorPos"><option value="">Otomatis</option><option value="tabel">Di daftar (Nomor :)</option><option value="judul">Di bawah judul NOTA DINAS</option></select></label>
+        </div>
+        <div class="row2">
+          <label>Spasi baris
+            <select id="f-spasi"><option value="">Otomatis</option><option value="1">1</option><option value="1.15">1,15</option><option value="1.5">1,5</option><option value="2">2</option></select></label>
+          <label>Jarak antar paragraf
+            <select id="f-jarakPar"><option value="">Otomatis</option><option value="0">Tanpa jarak</option><option value="3">Kecil (3 pt)</option><option value="6">Sedang (6 pt)</option><option value="12">Besar (12 pt)</option></select></label>
+        </div>
+        <label class="check"><input type="checkbox" id="f-indent"> Baris pertama paragraf menjorok ke kanan</label>
+        <div><button type="button" class="btn sm" id="advReset">Kembalikan semua ke otomatis</button></div>
+      </fieldset>
+      <hr class="sep">
+      <fieldset>
+        <legend>Isi dropdown</legend>
+        <p class="hint">Pilihan yang muncul saat kolomnya diklik. Satu pilihan per baris. Isian baru yang Anda ketik di surat juga otomatis ditambahkan.</p>
+        <div id="pilihanEdit"></div>
+        <div><button type="button" class="btn sm" id="pilihanReset">Kembalikan isi dropdown bawaan</button></div>
+      </fieldset>
+      <hr class="sep">
       <fieldset>
         <legend>Kop surat</legend>
         <div class="logo-prev">
@@ -648,7 +664,7 @@ function fillForm(){
   doc.isi=luruskan(doc.isi); doc.lampText=luruskan(doc.lampText); // menjorok lama (Tab) jadi lurus dengan teks di atasnya
   FIELDS.forEach(f=>{$("f-"+f).value=doc[f]||""});
   $("f-indent").checked=doc.indent!==false;
-  $("f-jenis").value=doc.jenis||"nota"; $("pane-edit").dataset.jenis=doc.jenis||"nota";
+  $("f-jenis").value=doc.jenis||"nota"; $("pane-edit").dataset.jenis=$("pane-kop").dataset.jenis=doc.jenis||"nota";
   $("f-tte").checked=!!doc.tte; $("ttdAtasBox").hidden=!doc.tte;
   ["f-kepada","f-tembusan","f-jabatan"].forEach(id=>fitRows($(id)));
   Object.keys(FMT).forEach(k=>{ const el=$("f-"+k); if(!el) return; el.value=doc[k]||"";
@@ -1433,7 +1449,7 @@ function changed(){
 function setStatus(t,ok){const s=$("metaStatus");s.textContent=t;s.classList.toggle("ok",!!ok)}
 function save(auto){
   if(!cur){cur={id:uid(),created:Date.now(),updated:Date.now(),data:null};arsip.unshift(cur)}
-  cur.data=structuredClone(doc); cur.updated=Date.now();
+  cur.data=structuredClone(doc); cur.updated=Date.now(); pelajariPilihan(doc);
   const ok=store.set(LS_ARSIP,arsip); store.set(LS_CUR,cur.id);
   dirty=false;
   if(ok){ setStatus("Tersimpan otomatis "+new Date(cur.updated).toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"}),true); if(!auto) toast("Surat disimpan ke arsip"); }
@@ -1734,6 +1750,54 @@ $("bentukPilih").addEventListener("click",e=>{
   Object.entries(b.f).forEach(([k,v])=>{ if(k==="indent"){ if(v===false) doc.indent=false; } else doc[k]=v; });
   fillForm(); changed(); toast("Bentuk “"+b.nama+"” dipasang: "+b.ket);
 });
+
+/* ---------- Isi dropdown: daftar pilihan yang bisa ditambah ---------- */
+const LS_PILIHAN="notadinas.pilihan.v1";
+const PILIHAN_AWAL={
+  sifat:["Biasa","Segera","Sangat Segera","Penting","Rahasia"],
+  lampiran:["-","1 (satu) berkas","1 (satu) lembar","2 (dua) lembar"],
+  tempatSurat:["Garut"],
+  diTempat:["Garut","Bandung","Jakarta","Tempat"],
+  dari:[],
+  lampJudul:["LAMPIRAN SURAT","LAMPIRAN NOTA DINAS"],
+  kalimat:["Disampaikan dengan hormat, ","Hari/Tanggal : ","Waktu : 09.00 WIB s.d. selesai","Tempat : ","Acara : ","Peserta : ","Pakaian : ","Catatan : ",
+    "Mengingat pentingnya acara tersebut, kami mohon kehadiran Bapak/Ibu tepat pada waktunya.",
+    "Demikian kami sampaikan, atas perhatian dan kerja samanya diucapkan terima kasih.",
+    "Demikian kami sampaikan, mohon petunjuk dan arahan lebih lanjut. Atas perhatiannya, kami ucapkan terima kasih.",
+    "Demikian untuk dilaksanakan."]
+};
+const NAMA_PILIHAN={sifat:"Sifat",lampiran:"Lampiran",tempatSurat:"Tempat surat dibuat",diTempat:"Tempat tujuan (di …)",dari:"Dari (nota dinas)",lampJudul:"Judul lampiran",kalimat:"Kalimat siap pakai (tombol ＋ Sisipkan di atas kotak isi)"};
+let pilihan=Object.assign(structuredClone(PILIHAN_AWAL),store.get(LS_PILIHAN,{}));
+const unik = a => [...new Set(a.map(s=>String(s).trim()).filter(Boolean))];
+function renderPilihan(){
+  // datalist untuk kolom: daftar + isian yang pernah dipakai di arsip
+  $("dlWadah").innerHTML=Object.keys(PILIHAN_AWAL).filter(k=>k!=="kalimat").map(k=>{
+    const dariArsip=arsip.map(a=>a.data[k]).filter(v=>v && !/\n/.test(v));
+    return '<datalist id="dl-'+k+'">'+unik(pilihan[k].concat(dariArsip)).slice(0,60).map(v=>'<option value="'+esc(v)+'">').join("")+'</datalist>'; }).join("");
+  $("sisipKalimat").innerHTML='<option value="">＋ Sisipkan kalimat…</option>'+pilihan.kalimat.map((v,i)=>'<option value="'+i+'">'+esc(v.length>70?v.slice(0,68)+"…":v)+'</option>').join("");
+}
+function renderPilihanEdit(){
+  $("pilihanEdit").innerHTML=Object.keys(PILIHAN_AWAL).map(k=>'<label>'+esc(NAMA_PILIHAN[k])+'<textarea data-pilihan="'+k+'" rows="'+Math.min(8,Math.max(2,pilihan[k].length+1))+'">'+esc(pilihan[k].join("\n"))+'</textarea></label>').join("");
+}
+$("pilihanEdit").addEventListener("input",e=>{ const k=e.target.dataset.pilihan; if(!k) return; pilihan[k]=e.target.value.split("\n").map(s=>k==="kalimat"?s.replace(/\s+$/,s.endsWith(", ")?" ":""):s.trim()).filter(s=>s.trim()); store.set(LS_PILIHAN,pilihan); renderPilihan(); });
+$("pilihanReset").addEventListener("click",()=>{ pilihan=structuredClone(PILIHAN_AWAL); store.set(LS_PILIHAN,pilihan); renderPilihan(); renderPilihanEdit(); toast("Isi dropdown kembali seperti bawaan"); });
+// Isian baru otomatis masuk daftar pilihan
+function pelajariPilihan(d){
+  let ubah=false;
+  ["sifat","lampiran","tempatSurat","diTempat","dari","lampJudul"].forEach(k=>{ const v=String(d[k]||"").trim();
+    if(v && !/\n/.test(v) && !/^\[/.test(v) && !pilihan[k].includes(v)){ pilihan[k].push(v); ubah=true; } });
+  if(ubah){ store.set(LS_PILIHAN,pilihan); renderPilihan(); }
+}
+// Klik kolom yang punya daftar: daftar pilihan langsung terbuka
+document.querySelectorAll("input[list^='dl-']").forEach(el=>el.addEventListener("mousedown",()=>{ if(document.activeElement===el) return; setTimeout(()=>{ try{ el.showPicker(); }catch(e){} },0); }));
+// Sisipkan kalimat di posisi kursor (baris baru bila kursor di tengah baris)
+$("sisipKalimat").addEventListener("change",e=>{
+  const v=pilihan.kalimat[+e.target.value]; e.target.value=""; if(v===undefined) return;
+  const ta=$("f-isi"), p=ta.selectionStart, awalBaris=p===0||ta.value[p-1]==="\n";
+  ta.focus(); ta.setRangeText((awalBaris?"":"\n")+v,p,ta.selectionEnd,"end");
+  ta.dispatchEvent(new Event("input",{bubbles:true}));
+});
+renderPilihan(); renderPilihanEdit();
 
 /* ---------- Tab ---------- */
 function showTab(t){
