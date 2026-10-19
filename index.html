@@ -243,6 +243,9 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
 .bentuk .mini i{position:absolute;height:2px;background:#8a958e;border-radius:1px}
 .bentuk .mini i.k{background:#1f6b45;height:3px}
 .bentuk .mini i.t{background:#c7a12f}
+.isi-alat{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
+.isi-alat .btn{font-weight:600}
+.isi-alat span{font-size:11.5px;color:var(--muted)}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:6px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
 .toast.show{opacity:1}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
@@ -275,10 +278,11 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
 <header class="top">
   <div class="brand">
     <img id="brandLogo" alt="">
-    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 20.30</small></div>
+    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 21.30</small></div>
   </div>
   <div class="actions">
     <button class="btn" id="btnNew" type="button">Surat baru</button>
+    <button class="btn" id="btnSimpan" type="button" title="Simpan ke Arsip (Ctrl+S)">Simpan</button>
     <button class="btn" id="btnDocx" type="button">Unduh Word</button>
     <button class="btn primary" id="btnPrint" type="button">Cetak / PDF<span class="badge" id="cekBadge" hidden></span></button>
   </div>
@@ -301,20 +305,7 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
     </div>
 
     <form class="pane" id="pane-edit" autocomplete="off">
-      <div class="alur">
-        <div class="alur-step" id="alurStep" role="group" aria-label="Status naskah"></div>
-        <div class="sk-banner" id="skBanner" hidden></div>
-        <details class="bantuan"><summary>Alur naskah keluar <small id="alurInfo"></small></summary>
-          <ol class="hint alur-ol">
-            <li><b>Konsep</b>: susun di aplikasi ini. Pakai <b>Surat baru</b> untuk memilih konsep baku. Pastikan daftar periksa hijau, lalu <b>Unduh Word</b>.</li>
-            <li><b>Diperiksa</b>: di SRIKANDI, buat registrasi naskah keluar, unggah konsep Word, lalu pilih pemeriksa (atasan langsung, berjenjang) dan penandatangan. Koreksi dari pemeriksa diperbaiki di sini, lalu unggah ulang.</li>
-            <li><b>Disetujui</b>: semua pemeriksa sudah menyetujui. Naskah tinggal menunggu penandatangan.</li>
-            <li><b>Ditandatangani</b>: penandatangan membubuhkan TTE (BSrE). Salin nomor dan tanggal naskah dari SRIKANDI ke kolom Nomor dan Tanggal di sini agar arsip dan saran nomor berikutnya benar.</li>
-            <li><b>Terkirim</b>: naskah didistribusikan ke tujuan dan tembusan. Surat tersimpan di Arsip dan bisa dicari atau dijadikan templat.</li>
-          </ol>
-          <p class="hint">Nama menu di SRIKANDI bisa sedikit berbeda menurut versinya. Klik langkah di atas untuk menandai posisi surat; riwayatnya tersimpan.</p>
-        </details>
-      </div>
+      <div class="sk-banner" id="skBanner" hidden></div>
       <fieldset>
         <legend>Kepala surat</legend>
         <div class="seg jenis-seg" id="jenisSeg" role="group" aria-label="Jenis surat">
@@ -349,6 +340,7 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
       <hr class="sep">
       <fieldset>
         <legend>Isi surat</legend>
+        <div class="isi-alat" data-for="f-isi"><button type="button" class="btn sm" data-geser="kiri" title="Geser baris ke kiri (Shift+Tab)">⇤ Geser kiri</button><button type="button" class="btn sm" data-geser="kanan" title="Geser baris ke kanan (Tab)">Geser kanan ⇥</button><span>Taruh kursor di baris (atau blok beberapa baris), lalu klik</span></div>
         <textarea id="f-isi" class="isi-box" rows="20" placeholder="Tempel atau ketik isi nota di sini, dari paragraf pembuka sampai penutup."></textarea>
         <div class="actions"><button class="btn sm" type="button" id="btnParse">Rapikan otomatis</button></div>
         <details class="bantuan"><summary>Cara menulis isi</summary>
@@ -356,6 +348,7 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
         <p class="hint">Satu baris = satu paragraf. Baris yang diawali <code>1.</code> <code>2.</code> atau <code>a.</code> <code>b.</code> otomatis menjadi butir bernomor. Baris pendek tanpa titik di akhir menjadi sub judul tebal (awali dengan <code>#</code> bila perlu). Kolom tabel dipisah tanda <code>|</code>. Tebalkan kata dengan <code>**kata**</code>.</p>
         <p class="hint">Rincian ditulis <code>Hari/Tanggal : 28 September 2026</code>; nama harinya diisi otomatis. Tekan Enter di akhir butir untuk nomor berikutnya.</p>
         <p class="hint"><b>Menjorok ke dalam otomatis:</b> ketik semua baris rata kiri saja, tidak perlu Tab atau spasi. Baris di bawah <code>Waktu</code>, <code>Tempat</code>, <code>Catatan</code>, dan sejenisnya ditempatkan sendiri:<br><code>Waktu : 1. Hari Senin s.d Kamis</code><br><code>Sesi I : 09.00 s.d 10.30 WIB</code> → masuk ke bawah “Hari Senin”<br><code>2. Hari Jumat</code> → lurus dengan “1.”<br><code>Tempat : Aula Kodim 0611 Garut</code><br><code>Jln. Veteran No.1</code> → lurus dengan “Aula”<br>Kalimat berikutnya (misalnya “Selanjutnya, …”) kembali menjadi paragraf. Saat Anda selesai mengetik, kotak ini ikut dirapikan.</p>
+        <p class="hint"><b>Mau mengatur sendiri?</b> Taruh kursor di baris itu lalu klik <b>Geser kanan ⇥</b> atau <b>⇤ Geser kiri</b> (sama dengan Tab / Shift+Tab). Setiap klik memindah baris ke posisi lurus berikutnya: lurus dengan teks setelah titik dua, lalu lurus dengan teks setelah “1.”, dan seterusnya. Pilihan Anda yang dipakai.</p>
         </details>
       </fieldset>
       <hr class="sep">
@@ -417,6 +410,7 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
       <hr class="sep">
       <details class="lipat" id="lampBox">
         <summary id="lampSum">+ Tambah lampiran (halaman baru)</summary>
+        <div class="isi-alat" data-for="f-lampText"><button type="button" class="btn sm" data-geser="kiri" title="Geser baris ke kiri (Shift+Tab)">⇤ Geser kiri</button><button type="button" class="btn sm" data-geser="kanan" title="Geser baris ke kanan (Tab)">Geser kanan ⇥</button></div>
         <textarea id="f-lampText" class="isi-box" rows="14" placeholder="Tempel atau ketik isi lampiran di sini.&#10;Baris diawali I. II. III. menjadi bab, 1. 2. 3. atau a. b. c. menjadi butir, kolom tabel dipisah tanda |"></textarea>
         <p class="hint">Dicetak di halaman baru setelah tanda tangan. Nomor dan tanggal diambil dari surat; kolom Lampiran di kepala surat terisi “1 (satu) berkas” sendiri.</p>
       </details>
@@ -426,7 +420,6 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
     <div class="pane" id="pane-arsip" hidden>
       <div style="display:flex;gap:8px">
         <input type="text" id="cari" placeholder="Cari hal, tujuan, atau nomor…">
-        <select id="fStatus" aria-label="Saring status" style="max-width:9.5em"><option value="">Semua status</option></select>
       </div>
       <div class="list" id="arsipList"></div>
       <hr class="sep">
@@ -755,7 +748,7 @@ function tingkatBaris(raw,W){
     if(!t) return {lv:0,x:0,kosong:true};
     if(/\t/.test(lead)){ lv=Math.min(4,(lead.match(/\t/g)||[]).length); const a=st.filter(j=>j.lv===lv).pop(); x=a?a.x:lv*W("    "); pas=true; }
     else if(lead.length){ const x0=W(lead), c=st.filter(j=>j.x<=x0+sw*.6);
-      const a=c.length?c.reduce((p,j)=>j.x>p.x?j:p):null; lv=a?a.lv:1; x=a?a.x:x0; pas=!!a && Math.abs(a.x-x0)<=sw*.6; }
+      const a=c.length?c.reduce((p,j)=>j.x>p.x?j:p):null; lv=a?a.lv:(x0<sw*.6?0:1); x=a?a.x:(lv?x0:0); pas=a ? Math.abs(a.x-x0)<=sw*.6 : !lv; } // hair space saja = sengaja di kiri
     st = lv ? st.filter(j=>j.lv<=lv) : [];
     st.push(...jangkar(t,x,lv,W));
     return {lv,x,pas,st:st.slice()};
@@ -766,6 +759,7 @@ function tingkatBaris(raw,W){
 const RINCI_UTAMA=/^(Hari\s*\/\s*Tanggal|Hari|Tanggal|Waktu|Pukul|Jam|Tempat|Lokasi|Alamat|Acara|Agenda|Kegiatan|Pakaian|Catatan|Keterangan|Peserta|Narasumber|Pemateri)[\s\u200A]*:[\s\u200A]*\S/i;
 const PARAGRAF_BARU=/^(Selanjutnya|Demikian|Sehubungan|Berkenaan|Berdasarkan|Adapun|Atas|Mengingat|Dengan|Untuk|Kami|Bersama|Oleh|Saudara|Bapak|Mohon)\b/i;
 const SUB_LABEL=/^(Sesi|Gelombang|Kloter|Tahap|Shift|Angkatan|Kelompok|Ruang)\b/i;
+const LEAD_ADA=/^[\t \u2009\u200A]+\S/;
 const akhirRincian = l => l.length>90 || /:$/.test(l) || PARAGRAF_BARU.test(l) || (/\.$/.test(l) && l.split(/\s+/).length>=6);
 function tingkatOtomatis(raw,W){
   const inf=tingkatBaris(raw,W), lv=inf.map(x=>x.kosong?-1:x.lv), auto=raw.map(()=>false);
@@ -773,7 +767,9 @@ function tingkatOtomatis(raw,W){
   raw.forEach((s,i)=>{ const l=s.trim(); if(!l) return;
     if(RINCI_UTAMA.test(l)){ lv[i]=0; auto[i]=true; on=true; num=/:[\s\u200A]*\d{1,2}[.)]\s/.test(l); return; }
     if(!on) return;
-    if(akhirRincian(l)){ on=false; lv[i]=0; return; }
+    const sendiri=LEAD_ADA.test(s) && inf[i].pas;               // digeser sendiri (lurus dengan teks di atasnya): pilihan pengguna dipakai
+    if(akhirRincian(l) && !sendiri){ on=false; lv[i]=0; return; }
+    if(sendiri) return;
     auto[i]=true;
     if(/^\d{1,2}[.)]\s/.test(l)){ if(num){ lv[i]=1; return; } on=false; auto[i]=false; return; }
     if(AWAL_RINCI.test(l) && !SUB_LABEL.test(l)){ lv[i]=num?2:0; return; }
@@ -799,7 +795,7 @@ function luruskan(text){
     g.forEach((i,k)=>{ ls[i]=lab[k]+(padPx(x-W(lab[k]),W)||" ")+": "+ls[i].match(AWAL_RINCI)[2]; }); });
   // 2) baris menjorok diberi spasi sampai tepat di bawah teks yang dirujuknya
   const tab=ls.map((l,i)=>lv[i]>0?"\t".repeat(lv[i])+l:l), inf=tingkatBaris(tab,W);
-  return tab.map((s,i)=>asli(i) ? raw[i] : lv[i]>0 ? (padPx(inf[i].x,W)||" ")+ls[i] : ls[i]).join("\n");
+  return tab.map((s,i)=>asli(i) ? raw[i] : lv[i]>0 ? (padPx(inf[i].x,W)||" ")+ls[i] : (!oto.auto[i] && LEAD_ADA.test(raw[i]) ? HS : "")+ls[i]).join("\n");
 }
 // Untuk "Rapikan otomatis": menjorok yang lurus dengan teks di atasnya dijadikan Tab agar tidak hilang
 function tabDariSpasi(text){
@@ -813,7 +809,9 @@ function geserBaris(lines,i,mundur,W){
   const ld=lines[i].match(LEAD)[0], x0=!ld.length ? 0 : t ? tingkatBaris(lines.slice(0,i+1),W)[i].x : W(ld.replace(/\t/g,"    "));
   let x;
   if(mundur){ const c=st.filter(j=>j.x<x0-sw*.6).map(j=>j.x); x=c.length?Math.max(...c):0; }
-  else { const c=st.filter(j=>j.x>x0+sw*.6).map(j=>j.x); x=c.length?Math.min(...c):x0+W("    "); }
+  else { const c=st.filter(j=>j.x>x0+sw*.6).map(j=>j.x); if(!c.length) return lines[i]; x=Math.min(...c); } // sudah paling dalam
+  // digeser ke paling kiri padahal aturan otomatis akan menjorokkannya: beri penanda tipis agar tetap di kiri
+  if(!x && tingkatOtomatis(lines.slice(0,i).concat(t),W).lv[i]>0) return HS+t;
   return padPx(x,W)+t;
 }
 // Isi satu kotak: jenis tiap baris dikenali dari bentuknya
@@ -858,7 +856,8 @@ function textToBlocks(text,lamp){
       return;
     }
     const between = i>0 && isItem(ls[i-1]) && isItem(ls[i+1]); // keterangan pendek di antara butir
-    out.push(looksJudul(l) && !between ? {k:"judul",t:l} : {k:"paragraf",t:l});
+    const keKiri = /^\u200A/.test(raw[i]);                       // sengaja digeser ke kiri: paragraf biasa
+    out.push(looksJudul(l) && !between && !keKiri ? {k:"judul",t:l} : {k:"paragraf",t:l});
   });
   return out;
 }
@@ -1025,19 +1024,28 @@ function rapikan(silent){
 $("btnParse").addEventListener("click",()=>rapikan(false));
 // Enter di akhir butir "3. …" → baris baru "4. " (huruf a→b, bab I→II). Enter pada butir kosong mengakhiri daftar.
 const romawiKeAngka = r => { const v={I:1,V:5,X:10}; let n=0; for(let i=0;i<r.length;i++){ const a=v[r[i]], b=v[r[i+1]]||0; n+= a<b?-a:a; } return n; };
-// Tab menjorokkan baris (bisa beberapa baris sekaligus), Shift+Tab mengembalikan
+// Geser baris tempat kursor berada (atau semua baris yang diblok) ke posisi lurus berikutnya / sebelumnya
+function geserPilihan(ta,mundur){
+  const W=ukurEditor(), v0=ta.value, a0=ta.selectionStart, z0=ta.selectionEnd;
+  const i0=v0.slice(0,a0).split("\n").length-1, i1=v0.slice(0,z0>a0&&v0[z0-1]==="\n"?z0-1:z0).split("\n").length-1;
+  const asal=v0.split("\n"), semua=luruskan(v0).split("\n");   // dirapikan dulu (posisi sama dengan pratinjau), lalu digeser
+  for(let i=i0;i<=i1;i++) if(!asal[i].trim()) semua[i]=asal[i];   // baris yang baru berisi spasi tetap di posisinya
+  for(let i=i0;i<=i1;i++) semua[i]=geserBaris(semua,i,mundur,W);
+  const v=semua.join("\n"), awal=i=>semua.slice(0,i).join("\n").length+(i?1:0);
+  ta.value=v;
+  if(a0===z0){ const p=awal(i0)+semua[i0].length; ta.selectionStart=ta.selectionEnd=p; } else { ta.selectionStart=awal(i0); ta.selectionEnd=awal(i1)+semua[i1].length; }
+  ta.dispatchEvent(new Event("input",{bubbles:true}));
+}
+// Tab = geser kanan, Shift+Tab = geser kiri
 ["f-isi","f-lampText"].forEach(id=>$(id).addEventListener("keydown",e=>{
   if(e.key!=="Tab"||e.ctrlKey||e.altKey||e.metaKey||e.isComposing) return;
-  const ta=e.target, v=ta.value, a=ta.selectionStart, z=ta.selectionEnd;
-  e.preventDefault();
-  const s=v.lastIndexOf("\n",a-1)+1, end=v.indexOf("\n",z>a&&v[z-1]==="\n"?z-1:z), eol=end<0?v.length:end;
-  const W=ukurEditor(), semua=v.split("\n"), i0=v.slice(0,s).split("\n").length-1, n=v.slice(s,eol).split("\n").length;
-  for(let i=i0;i<i0+n;i++) semua[i]=geserBaris(semua,i,e.shiftKey,W);
-  const baru=semua.slice(i0,i0+n).join("\n");
-  ta.setRangeText(baru,s,eol);
-  if(a===z){ const d=baru.length-(eol-s); ta.selectionStart=ta.selectionEnd=Math.max(s,a+d); } else { ta.selectionStart=s; ta.selectionEnd=s+baru.length; }
-  ta.dispatchEvent(new Event("input",{bubbles:true}));
+  e.preventDefault(); geserPilihan(e.target,e.shiftKey);
 }));
+// Tombol Geser kiri / Geser kanan di atas kotak (kursor tetap di kotak)
+document.querySelectorAll(".isi-alat").forEach(bar=>{
+  bar.addEventListener("mousedown",e=>{ if(e.target.closest("button")) e.preventDefault(); });
+  bar.addEventListener("click",e=>{ const b=e.target.closest("button[data-geser]"); if(!b) return; const ta=$(bar.dataset.for); ta.focus(); geserPilihan(ta,b.dataset.geser==="kiri"); });
+});
 ["f-isi","f-lampText"].forEach(id=>$(id).addEventListener("keydown",e=>{
   if(e.key!=="Enter"||e.shiftKey||e.ctrlKey||e.altKey||e.isComposing) return;
   const ta=e.target, v=ta.value, pos=ta.selectionStart; if(pos!==ta.selectionEnd) return;
@@ -1464,17 +1472,15 @@ function newNota(base,tpl){
 }
 $("btnNew").addEventListener("click",()=>bukaGaleri());
 $("cari").addEventListener("input",renderArsip);
-$("fStatus").addEventListener("change",renderArsip);
 function renderArsip(){
   $("arsipCount").textContent="("+arsip.length+")";
   const q=$("cari").value.toLowerCase().trim();
-  const fs=$("fStatus"); if(fs.options.length<2) ALUR.forEach(x=>fs.add(new Option(x[1],x[0])));
-  const items=arsip.slice().sort((a,b)=>b.updated-a.updated).filter(a=>!q||[a.data.hal,a.data.kepada,a.data.nomor,a.data.dari].join(" ").toLowerCase().includes(q)).filter(a=>!fs.value||statusOf(a.data)===fs.value);
+  const items=arsip.slice().sort((a,b)=>b.updated-a.updated).filter(a=>!q||[a.data.hal,a.data.kepada,a.data.nomor,a.data.dari].join(" ").toLowerCase().includes(q));
   const box=$("arsipList"); box.innerHTML="";
   if(!items.length){box.innerHTML='<p class="hint">'+(q?"Tidak ada surat yang cocok dengan pencarian.":"Arsip kosong. Tekan “Surat baru” untuk mulai.")+'</p>';return}
   items.forEach(a=>{
     const el=document.createElement("div"); el.className="arsip-item"+(cur&&a.id===cur.id?" current":""); el.tabIndex=0;
-    el.innerHTML='<div class="t"><span class="st '+statusOf(a.data)+'">'+namaStatus(statusOf(a.data))+'</span>'+esc(a.data.hal||"(tanpa hal)")+'</div>'+
+    el.innerHTML='<div class="t"><span class="st '+(a.data.srikandi&&a.data.srikandi.tte?"tte":"konsep")+'">'+(a.data.srikandi&&a.data.srikandi.tte?"Ber-TTE":"Konsep")+'</span>'+esc(a.data.hal||"(tanpa hal)")+'</div>'+
       '<div class="m">'+(a.data.jenis==="surat"?"Surat":"Nota")+" · "+esc(fmtTanggal(a.data.tanggal))+(a.data.nomor?" · "+esc(a.data.nomor):"")+" · Kepada: "+esc((lines(a.data.kepada)[0]||"–").replace(/^Yth\.\s*/,""))+'</div>'+
       '<div class="tools"><button class="btn sm" type="button" data-a="dup">Gandakan</button><button class="btn sm" type="button" data-a="tpl">Jadikan templat</button><button class="btn sm danger" type="button" data-a="del">Hapus</button></div>';
     const sk=kabarSk(a.data); if(sk) el.querySelector(".m").insertAdjacentHTML("afterend",'<div class="sk'+(sk.ok?" ok":"")+'">'+sk.html+'</div>');
@@ -1623,22 +1629,7 @@ function isianBerikut(){
 const ALUR=[["konsep","Konsep"],["koreksi","Diperiksa"],["setuju","Disetujui"],["ttd","Ditandatangani"],["kirim","Terkirim"]];
 const statusOf = d => d.status || "konsep";
 const namaStatus = s => (ALUR.find(x=>x[0]===s)||ALUR[0])[1];
-function renderAlur(){
-  const s=statusOf(doc), i=ALUR.findIndex(x=>x[0]===s);
-  $("alurStep").innerHTML=ALUR.map((x,j)=>'<button type="button" data-s="'+x[0]+'" class="'+(j<i?"done":j===i?"now":"")+'" aria-pressed="'+(j===i)+'"><span>'+(j+1)+'</span>'+x[1]+'</button>').join("");
-  const r=(doc.riwayat||[]).slice(-1)[0];
-  $("alurInfo").textContent = r ? namaStatus(r.s)+" · "+new Date(r.t).toLocaleString("id-ID",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}) : "Belum diproses";
-}
-$("alurStep").addEventListener("click",e=>{
-  const b=e.target.closest("button[data-s]"); if(!b || b.dataset.s===statusOf(doc)) return;
-  const s=b.dataset.s, i=ALUR.findIndex(x=>x[0]===s);
-  doc.status=s; (doc.riwayat=doc.riwayat||[]).push({s,t:Date.now()});
-  changed(); clearTimeout(saveTimer); save(true); renderAlur(); // status langsung tersimpan
-  const w=$("cekBadge").hidden?0:+$("cekBadge").textContent;
-  if(i>=2 && w) toast("Catatan: masih ada "+w+" hal di daftar periksa.");
-  else if(s==="ttd" && !(doc.nomor||"").trim()) toast("Isi nomor surat dari SRIKANDI setelah ditandatangani.");
-  else toast("Status: "+namaStatus(s));
-});
+const renderAlur = () => {}; // langkah alur tidak ditampilkan lagi: cukup Konsep dan Simpan
 
 /* ---------- Kabar SRIKANDI (dari ekstensi Chrome "Kabar SRIKANDI") ---------- */
 // Ekstensi membaca status naskah di SRIKANDI yang dibuka pengguna; di sini dicocokkan dengan surat di arsip
@@ -1772,6 +1763,7 @@ $("fileRestore").addEventListener("change",e=>{
   }).catch(()=>toast("Berkas bukan cadangan arsip nota dinas yang valid."));
   e.target.value="";
 });
+$("btnSimpan").addEventListener("click",()=>{ clearTimeout(saveTimer); save(false); });
 $("btnPrint").addEventListener("click",()=>{ if(dirty) save(true); window.print(); });
 
 /* ---------- Word (.docx) tanpa pustaka luar ---------- */
