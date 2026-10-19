@@ -52,7 +52,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
 legend{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:6px;padding:0}
 label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-weight:500}
-input[type=text],input[type=date],select,textarea{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:7px 9px;color:var(--fg);font-size:14px}
+input[type=text],input[type=date],input[type=number],input[type=search],select,textarea{width:100%;box-sizing:border-box;border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:7px 9px;color:var(--fg);font-size:14px}
 textarea{resize:vertical;min-height:60px;line-height:1.45}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .check{flex-direction:row;align-items:center;gap:8px;color:var(--fg);font-weight:400;font-size:13px}
@@ -250,6 +250,23 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
 .isi-alat .btn{font-weight:600}
 .isi-alat span{font-size:11.5px;color:var(--muted);flex:1 1 140px;min-width:0}
 .isi-alat select{flex:1 1 100%;min-width:0}
+#pane-kop{background:color-mix(in srgb,var(--bg) 55%,var(--panel));gap:12px}
+.aturan-nav{display:flex;flex-wrap:wrap;gap:6px;position:sticky;top:-16px;margin-top:-16px;padding:10px 0 8px;background:inherit;z-index:3}
+.aturan-nav button{border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:999px;padding:4px 11px;font:inherit;font-size:12px;cursor:pointer}
+.aturan-nav button:hover{border-color:var(--accent);color:var(--accent)}
+.aturan-grup{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;margin:8px 2px -2px}
+.aturan-grup small{text-transform:none;letter-spacing:0;font-weight:400}
+.acard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 14px 13px;display:flex;flex-direction:column;gap:10px;box-shadow:0 1px 2px rgba(20,40,30,.05),0 6px 18px -8px rgba(20,40,30,.12);scroll-margin-top:52px;transition:box-shadow .3s,border-color .3s}
+.acard.sorot{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.acard-h{display:flex;gap:10px;align-items:flex-start;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.acard-h .no{width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-fg);font-weight:700;display:grid;place-items:center;font-size:12.5px;flex:none;margin-top:1px}
+.acard-h h3{margin:0;font-size:14.5px;font-weight:650}
+.acard-h p{margin:2px 0 0;font-size:12px;color:var(--muted);line-height:1.4}
+.sub-judul{font-size:12.5px;font-weight:600;margin-top:4px}
+.sub-judul .hint{font-weight:400}
+.acard-f{display:flex;justify-content:flex-end;padding-top:2px}
+.pilihan-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pilihan-grid label{font-size:12px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:6px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
 .toast.show{opacity:1}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
@@ -282,7 +299,7 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
 <header class="top">
   <div class="brand">
     <img id="brandLogo" alt="">
-    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 22.00</small></div>
+    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 22.30</small></div>
   </div>
   <div class="actions">
     <button class="btn" id="btnNew" type="button">Surat baru</button>
@@ -436,11 +453,16 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
     </div>
 
     <form class="pane" id="pane-kop" hidden autocomplete="off">
-      <p class="hint aturan-intro">Semua aturan ada di sini. Bentuk &amp; format berlaku untuk surat yang sedang dibuka (dan ikut terbawa ke surat baru sejenis); yang lain berlaku untuk semua surat.</p>
-      <fieldset>
-        <legend>Bentuk &amp; format surat</legend>
-        <div class="bentuk-lbl">Bentuk surat <small>klik salah satu</small></div>
+      <nav class="aturan-nav" aria-label="Lompat ke bagian aturan">
+        <button type="button" data-ke="a-bentuk">Bentuk</button><button type="button" data-ke="a-huruf">Huruf &amp; spasi</button><button type="button" data-ke="a-kop">Kop</button><button type="button" data-ke="a-kertas">Kertas</button><button type="button" data-ke="a-tujuan">Tujuan</button><button type="button" data-ke="a-dropdown">Dropdown</button><button type="button" data-ke="a-kalimat">Kalimat</button>
+      </nav>
+      <div class="aturan-grup">Untuk surat yang sedang dibuka <small>· ikut terbawa ke surat baru sejenis</small></div>
+      <section class="acard" id="a-bentuk">
+        <div class="acard-h"><span class="no">1</span><div><h3>Bentuk surat</h3><p>Klik salah satu; huruf, spasi, dan letak nomor langsung terpasang.</p></div></div>
         <div class="bentuk" id="bentukPilih" role="group" aria-label="Bentuk surat"></div>
+      </section>
+      <section class="acard" id="a-huruf">
+        <div class="acard-h"><span class="no">2</span><div><h3>Huruf &amp; spasi</h3><p>Atur sendiri bila bentuk di atas belum pas. Isi selalu lurus setelah titik dua.</p></div></div>
         <div class="row2">
           <label>Huruf
             <select id="f-huruf"><option value="">Otomatis</option><option value="arial">Arial</option><option value="tnr">Times New Roman</option></select></label>
@@ -456,18 +478,11 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
             <select id="f-jarakPar"><option value="">Otomatis</option><option value="0">Tanpa jarak</option><option value="3">Kecil (3 pt)</option><option value="6">Sedang (6 pt)</option><option value="12">Besar (12 pt)</option></select></label>
         </div>
         <label class="check"><input type="checkbox" id="f-indent"> Baris pertama paragraf menjorok ke kanan</label>
-        <div><button type="button" class="btn sm" id="advReset">Kembalikan semua ke otomatis</button></div>
-      </fieldset>
-      <hr class="sep">
-      <fieldset>
-        <legend>Isi dropdown</legend>
-        <p class="hint">Pilihan yang muncul saat kolomnya diklik. Satu pilihan per baris. Isian baru yang Anda ketik di surat juga otomatis ditambahkan.</p>
-        <div id="pilihanEdit"></div>
-        <div><button type="button" class="btn sm" id="pilihanReset">Kembalikan isi dropdown bawaan</button></div>
-      </fieldset>
-      <hr class="sep">
-      <fieldset>
-        <legend>Kop surat</legend>
+        <div class="acard-f"><button type="button" class="btn sm" id="advReset">Kembalikan ke otomatis</button></div>
+      </section>
+      <div class="aturan-grup">Berlaku untuk semua surat</div>
+      <section class="acard" id="a-kop">
+        <div class="acard-h"><span class="no">3</span><div><h3>Kop surat</h3><p>Logo, nama instansi, dan alamat di bagian atas halaman pertama.</p></div></div>
         <div class="logo-prev">
           <img id="kopLogoPrev" alt="Logo instansi">
           <div style="display:flex;flex-direction:column;gap:6px">
@@ -482,42 +497,48 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
           <input type="text" id="k-l2"></label>
         <label>Alamat
           <textarea id="k-l3" rows="2"></textarea></label>
-      </fieldset>
-      <hr class="sep">
-      <fieldset>
-        <legend>Daftar tujuan surat</legend>
-        <label>Satu tujuan per baris (tanpa “Yth.”)
-          <textarea id="k-tujuan" rows="8"></textarea></label>
-        <p class="hint">Daftar ini muncul saat mengetik di kolom Kepada dan Tembusan. Tujuan yang pernah dipakai di arsip juga ikut muncul otomatis.</p>
-      </fieldset>
-      <hr class="sep">
-      <fieldset>
-        <legend>Kertas</legend>
+      </section>
+      <section class="acard" id="a-kertas">
+        <div class="acard-h"><span class="no">4</span><div><h3>Kertas &amp; margin</h3><p>Ukuran kertas dan jarak tepi halaman.</p></div></div>
         <label>Ukuran
           <select id="k-kertas">
             <option value="F4">F4 / Folio (21,59 × 33,02 cm)</option>
             <option value="A4">A4 (21 × 29,7 cm)</option>
           </select></label>
-        <details class="lipat" id="marginBox"><summary>Margin halaman <span class="hint" id="marginSum"></span></summary>
+        <div class="sub-judul" id="marginBox">Margin halaman <span class="hint" id="marginSum"></span></div>
         <label>Jarak kop dari tepi atas kertas (cm)
           <input type="number" id="k-mt" min="0.5" max="3" step="0.1" inputmode="decimal"></label>
         <p class="hint">Makin kecil angkanya, makin naik kop suratnya. Banyak printer tidak bisa mencetak lebih dekat dari 0,5 cm. </p>
         <div class="row2">
-          <label>Margin atas halaman lain (cm)
+          <label>Atas, hal. 2 dst. (cm)
             <input type="number" id="k-lmt" min="0.5" max="6" step="0.1" inputmode="decimal"></label>
-          <label>Margin bawah semua halaman (cm)
+          <label>Bawah (cm)
             <input type="number" id="k-lmb" min="0.5" max="6" step="0.1" inputmode="decimal"></label>
         </div>
         <div class="row2">
-          <label>Margin kiri (cm)
+          <label>Kiri (cm)
             <input type="number" id="k-ml" min="0.5" max="6" step="0.05" inputmode="decimal"></label>
-          <label>Margin kanan (cm)
+          <label>Kanan (cm)
             <input type="number" id="k-mr" min="0.5" max="6" step="0.05" inputmode="decimal"></label>
         </div>
         <p class="hint">Margin atas berlaku untuk halaman 2 dan seterusnya serta lampiran. Halaman pertama memakai jarak kop.</p>
         <div><button type="button" class="btn sm" id="marginReset">Kembalikan ke standar</button></div>
-        </details>
-      </fieldset>
+      </section>
+      <section class="acard" id="a-tujuan">
+        <div class="acard-h"><span class="no">5</span><div><h3>Daftar tujuan</h3><p>Muncul sebagai pilihan di kolom Kepada dan Tembusan. Satu tujuan per baris, tanpa “Yth.”.</p></div></div>
+        <textarea id="k-tujuan" rows="8" aria-label="Daftar tujuan surat"></textarea>
+      </section>
+      <section class="acard" id="a-dropdown">
+        <div class="acard-h"><span class="no">6</span><div><h3>Isi dropdown kolom</h3><p>Pilihan yang terbuka saat kolomnya diklik. Satu pilihan per baris; isian baru yang Anda ketik otomatis ikut masuk.</p></div></div>
+        <div class="pilihan-grid" data-pilihan-grup="sifat,lampiran"></div>
+        <div class="pilihan-grid" data-pilihan-grup="tempatSurat,diTempat"></div>
+        <div class="pilihan-grid" data-pilihan-grup="dari,lampJudul"></div>
+        <div class="acard-f"><button type="button" class="btn sm" id="pilihanReset">Kembalikan isi dropdown bawaan</button></div>
+      </section>
+      <section class="acard" id="a-kalimat">
+        <div class="acard-h"><span class="no">7</span><div><h3>Kalimat siap pakai</h3><p>Muncul di tombol ＋ Sisipkan kalimat di atas kotak isi. Satu kalimat per baris.</p></div></div>
+        <div data-pilihan-grup="kalimat" data-tanpa-judul="1"></div>
+      </section>
     </form>
   </aside>
 
@@ -1766,7 +1787,7 @@ const PILIHAN_AWAL={
     "Demikian kami sampaikan, mohon petunjuk dan arahan lebih lanjut. Atas perhatiannya, kami ucapkan terima kasih.",
     "Demikian untuk dilaksanakan."]
 };
-const NAMA_PILIHAN={sifat:"Sifat",lampiran:"Lampiran",tempatSurat:"Tempat surat dibuat",diTempat:"Tempat tujuan (di …)",dari:"Dari (nota dinas)",lampJudul:"Judul lampiran",kalimat:"Kalimat siap pakai (tombol ＋ Sisipkan di atas kotak isi)"};
+const NAMA_PILIHAN={sifat:"Sifat",lampiran:"Lampiran",tempatSurat:"Tempat surat dibuat",diTempat:"Tempat tujuan (di …)",dari:"Dari (nota dinas)",lampJudul:"Judul lampiran",kalimat:"Kalimat siap pakai"};
 let pilihan=Object.assign(structuredClone(PILIHAN_AWAL),store.get(LS_PILIHAN,{}));
 const unik = a => [...new Set(a.map(s=>String(s).trim()).filter(Boolean))];
 function renderPilihan(){
@@ -1777,9 +1798,14 @@ function renderPilihan(){
   $("sisipKalimat").innerHTML='<option value="">＋ Sisipkan kalimat…</option>'+pilihan.kalimat.map((v,i)=>'<option value="'+i+'">'+esc(v.length>70?v.slice(0,68)+"…":v)+'</option>').join("");
 }
 function renderPilihanEdit(){
-  $("pilihanEdit").innerHTML=Object.keys(PILIHAN_AWAL).map(k=>'<label>'+esc(NAMA_PILIHAN[k])+'<textarea data-pilihan="'+k+'" rows="'+Math.min(8,Math.max(2,pilihan[k].length+1))+'">'+esc(pilihan[k].join("\n"))+'</textarea></label>').join("");
+  document.querySelectorAll("[data-pilihan-grup]").forEach(g=>{ g.innerHTML=g.dataset.pilihanGrup.split(",").map(k=>{
+    const ta='<textarea data-pilihan="'+k+'" rows="'+Math.min(k==="kalimat"?12:7,Math.max(3,pilihan[k].length+1))+'"'+(g.dataset.tanpaJudul?' aria-label="'+esc(NAMA_PILIHAN[k])+'"':'')+'>'+esc(pilihan[k].join("\n"))+'</textarea>';
+    return g.dataset.tanpaJudul ? ta : '<label>'+esc(NAMA_PILIHAN[k])+ta+'</label>'; }).join(""); });
 }
-$("pilihanEdit").addEventListener("input",e=>{ const k=e.target.dataset.pilihan; if(!k) return; pilihan[k]=e.target.value.split("\n").map(s=>k==="kalimat"?s.replace(/\s+$/,s.endsWith(", ")?" ":""):s.trim()).filter(s=>s.trim()); store.set(LS_PILIHAN,pilihan); renderPilihan(); });
+// Tombol lompat cepat di atas tab Aturan
+document.querySelector(".aturan-nav").addEventListener("click",e=>{ const b=e.target.closest("[data-ke]"); if(!b) return; const c=$(b.dataset.ke);
+  c.scrollIntoView({behavior:"smooth",block:"start"}); c.classList.add("sorot"); setTimeout(()=>c.classList.remove("sorot"),1200); });
+$("pane-kop").addEventListener("input",e=>{ const k=e.target.dataset.pilihan; if(!k) return; pilihan[k]=e.target.value.split("\n").map(s=>k==="kalimat"?s.replace(/\s+$/,s.endsWith(", ")?" ":""):s.trim()).filter(s=>s.trim()); store.set(LS_PILIHAN,pilihan); renderPilihan(); });
 $("pilihanReset").addEventListener("click",()=>{ pilihan=structuredClone(PILIHAN_AWAL); store.set(LS_PILIHAN,pilihan); renderPilihan(); renderPilihanEdit(); toast("Isi dropdown kembali seperti bawaan"); });
 // Isian baru otomatis masuk daftar pilihan
 function pelajariPilihan(d){
