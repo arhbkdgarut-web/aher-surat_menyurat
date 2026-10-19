@@ -202,6 +202,32 @@ table.tbl th{background:#f2f2f2}
 .paste{background:var(--accent-soft);border-radius:8px;padding:12px}
 .paste legend{float:left;width:100%}
 
+dialog#galeri{width:min(860px,calc(100vw - 32px));max-height:calc(100vh - 48px);border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--fg);padding:16px 18px;box-sizing:border-box}
+dialog#galeri::backdrop{background:rgba(0,0,0,.35)}
+.g-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.g-head h2{font-size:17px;margin:0;flex:1 1 200px}
+.g-head input{flex:1 1 220px}
+#galeriIsi h3{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:14px 0 6px}
+.kartu-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.kartu{position:relative;text-align:left;border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:8px;padding:9px 11px;cursor:pointer;display:flex;flex-direction:column;gap:3px;font:inherit}
+.kartu:hover,.kartu:focus-visible{border-color:var(--accent);background:var(--accent-soft)}
+.kartu span{font-size:12px;color:var(--muted)}
+.kartu i{font-style:normal;font-size:11px;align-self:flex-start;border-radius:4px;padding:0 5px;background:var(--accent-soft);color:var(--accent)}
+.kartu i.j-nota{background:color-mix(in srgb,var(--gold) 16%,var(--panel));color:var(--fg)}
+.kartu .hapus{position:absolute;top:6px;right:8px;color:var(--muted)}
+.kartu .hapus:hover{color:var(--danger)}
+mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
+@media print{mark.ph{background:none}}
+.alur{display:flex;flex-direction:column;gap:4px}
+.alur-step{display:flex;gap:2px;flex-wrap:wrap}
+.alur-step button{flex:1 1 0;min-width:0;border:1px solid var(--line);background:var(--panel);color:var(--muted);font:inherit;font-size:11.5px;padding:5px 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;border-radius:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.alur-step button:first-child{border-radius:6px 0 0 6px}.alur-step button:last-child{border-radius:0 6px 6px 0}
+.alur-step button span{font-weight:700;font-size:11px}
+.alur-step button.done{color:var(--accent);background:var(--accent-soft)}
+.alur-step button.now{color:var(--accent-fg);background:var(--accent);border-color:var(--accent);font-weight:600}
+.alur-ol{margin:6px 0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.st{font-size:11px;border-radius:4px;padding:0 6px;background:var(--accent-soft);color:var(--accent);font-weight:600;margin-right:4px}
+.st.konsep{background:color-mix(in srgb,var(--gold) 16%,var(--panel));color:var(--fg)}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:6px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
 .toast.show{opacity:1}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
@@ -234,7 +260,7 @@ table.tbl th{background:#f2f2f2}
 <header class="top">
   <div class="brand">
     <img id="brandLogo" alt="">
-    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 14.00</small></div>
+    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 16.00</small></div>
   </div>
   <div class="actions">
     <button class="btn" id="btnNew" type="button">Surat baru</button>
@@ -242,6 +268,14 @@ table.tbl th{background:#f2f2f2}
     <button class="btn primary" id="btnPrint" type="button">Cetak / PDF<span class="badge" id="cekBadge" hidden></span></button>
   </div>
 </header>
+
+<dialog id="galeri" aria-labelledby="galeriJudul">
+  <div class="g-head"><h2 id="galeriJudul">Surat baru: pilih konsep</h2>
+    <input type="search" id="galeriCari" placeholder="Cari konsep: undangan, permohonan, laporan…">
+    <button class="btn sm" type="button" id="galeriTutup">Tutup</button></div>
+  <p class="hint">Isian dalam <mark class="ph">[kurung siku]</mark> tinggal diganti. Penanda tangan, gaya, dan TTE mengikuti surat terakhir yang sejenis. Surat dari SRIKANDI yang ditempel bisa disimpan sebagai templat sendiri lewat Arsip → <b>Jadikan templat</b>.</p>
+  <div id="galeriIsi"></div>
+</dialog>
 
 <div class="wrap">
   <aside class="side">
@@ -252,6 +286,19 @@ table.tbl th{background:#f2f2f2}
     </div>
 
     <form class="pane" id="pane-edit" autocomplete="off">
+      <div class="alur">
+        <div class="alur-step" id="alurStep" role="group" aria-label="Status naskah"></div>
+        <details class="bantuan"><summary>Alur naskah keluar <small id="alurInfo"></small></summary>
+          <ol class="hint alur-ol">
+            <li><b>Konsep</b>: susun di aplikasi ini. Pakai <b>Surat baru</b> untuk memilih konsep baku. Pastikan daftar periksa hijau, lalu <b>Unduh Word</b>.</li>
+            <li><b>Diperiksa</b>: di SRIKANDI, buat registrasi naskah keluar, unggah konsep Word, lalu pilih pemeriksa (atasan langsung, berjenjang) dan penandatangan. Koreksi dari pemeriksa diperbaiki di sini, lalu unggah ulang.</li>
+            <li><b>Disetujui</b>: semua pemeriksa sudah menyetujui. Naskah tinggal menunggu penandatangan.</li>
+            <li><b>Ditandatangani</b>: penandatangan membubuhkan TTE (BSrE). Salin nomor dan tanggal naskah dari SRIKANDI ke kolom Nomor dan Tanggal di sini agar arsip dan saran nomor berikutnya benar.</li>
+            <li><b>Terkirim</b>: naskah didistribusikan ke tujuan dan tembusan. Surat tersimpan di Arsip dan bisa dicari atau dijadikan templat.</li>
+          </ol>
+          <p class="hint">Nama menu di SRIKANDI bisa sedikit berbeda menurut versinya. Klik langkah di atas untuk menandai posisi surat; riwayatnya tersimpan.</p>
+        </details>
+      </div>
       <fieldset>
         <legend>Kepala surat</legend>
         <div class="seg jenis-seg" id="jenisSeg" role="group" aria-label="Jenis surat">
@@ -363,6 +410,7 @@ table.tbl th{background:#f2f2f2}
     <div class="pane" id="pane-arsip" hidden>
       <div style="display:flex;gap:8px">
         <input type="text" id="cari" placeholder="Cari hal, tujuan, atau nomor…">
+        <select id="fStatus" aria-label="Saring status" style="max-width:9.5em"><option value="">Semua status</option></select>
       </div>
       <div class="list" id="arsipList"></div>
       <hr class="sep">
@@ -564,7 +612,8 @@ function runs(text){
   out.push({t:text.slice(last)});
   return out.filter(r=>r.t);
 }
-const runsHtml = text => runs(text).map(r=>r.b?"<b>"+keepHtml(r.t)+"</b>":r.i?"<i>"+keepHtml(r.t)+"</i>":keepHtml(r.t)).join("");
+const runsHtml = text => runs(text).map(r=>r.b?"<b>"+keepHtml(r.t)+"</b>":r.i?"<i>"+keepHtml(r.t)+"</i>":keepHtml(r.t)).join("")
+  .replace(/\[[^\]\n<]{2,80}\]/g,'<mark class="ph">$&</mark>'); // isian konsep yang belum diganti
 
 /* ---------- Formulir ---------- */
 const FIELDS=["kepada","dari","tanggal","nomor","sifat","lampiran","hal","isi","lampText","lampJudul","tempatSurat","diTempat","pangkat","jabatan","nama","nip","tembusan","ttdAtas"];
@@ -585,6 +634,7 @@ function fillForm(){
   $("f-lampiran").placeholder = e.lampiran ? "otomatis: "+e.lampiran : "otomatis bila ada lampiran";
   $("f-lampJudul").placeholder="otomatis: "+lampJudul(doc);
   $("lampBox").open = $("lampBox").open || !!(doc.lampText||"").trim();
+  renderAlur();
   segarkanOtomatis();
 }
 // Bagian yang berubah mengikuti ketikan (tanpa menimpa isian pengguna)
@@ -612,7 +662,7 @@ $("f-jenis").addEventListener("change",e=>{
 Object.keys(FMT).forEach(k=>{ const el=$("f-"+k); if(el) el.addEventListener("change",e=>{ if(e.target.value) doc[k]=e.target.value; else delete doc[k]; changed(); }); });
 $("advReset").addEventListener("click",()=>{ Object.keys(FMT).concat(["indent","dari","tempatSurat","diTempat","lampJudul","labelKepada"]).forEach(k=>delete doc[k]); fillForm(); changed(); toast("Semua pengaturan kembali otomatis"); });
 document.querySelectorAll("#jenisSeg .btn").forEach(b=>b.addEventListener("click",()=>{ if(b.dataset.jenis===(doc.jenis||"nota")) return; $("f-jenis").value=b.dataset.jenis; $("f-jenis").dispatchEvent(new Event("change")); }));
-$("cekList").addEventListener("click",e=>{ const b=e.target.closest("button[data-f]"); if(!b) return; const el=$(b.dataset.f); const dt=el.closest("details"); if(dt) dt.open=true; showTab("edit"); el.focus(); el.scrollIntoView({block:"center",behavior:"smooth"}); });
+$("cekList").addEventListener("click",e=>{ const b=e.target.closest("button[data-f]"); if(!b) return; if(b.dataset.f==="ph"){ isianBerikut(); return; } const el=$(b.dataset.f); const dt=el.closest("details"); if(dt) dt.open=true; showTab("edit"); el.focus(); el.scrollIntoView({block:"center",behavior:"smooth"}); });
 $("btnToday").addEventListener("click",()=>{ doc.tanggal=today(); $("f-tanggal").value=doc.tanggal; changed(); });
 $("nomorSaran").addEventListener("click",e=>{ doc.nomor=e.currentTarget.dataset.v; $("f-nomor").value=doc.nomor; changed(); $("f-nomor").focus(); });
 $("pane-edit").addEventListener("submit",e=>e.preventDefault());
@@ -727,6 +777,8 @@ function periksa(){
   if(isSurat() && !(d.nomor||"").trim()) w.push(["Surat dinas belum bernomor","f-nomor"]);
   if(/^\[/.test(d.nomor||"")) w.push(["Nomor surat masih contoh","f-nomor"]);
   if(textToBlocks(d.isi,false).length<2) w.push(["Isi surat masih kosong","f-isi"]);
+  const nph=["kepada","hal","isi","lampText","tembusan","diTempat"].reduce((n,f)=>n+(String(d[f]||"").match(/\[[^\]\n]{2,80}\]/g)||[]).length,0);
+  if(nph) w.push(["Masih ada "+nph+" isian [ … ] yang belum diganti (klik untuk menuju)","ph"]);
   const box=$("cekList"), bd=$("cekBadge");
   box.hidden=false; box.className="cek"+(w.length?" warn":"");
   box.innerHTML = w.length ? w.map(x=>'<button type="button" data-f="'+x[1]+'">⚠ '+esc(x[0])+'</button>').join("") : '<span class="ok">✓ Siap dicetak</span>';
@@ -1260,9 +1312,9 @@ function openItem(item){
   cur=item; doc=structuredClone(item.data); store.set(LS_CUR,item.id);
   fillForm(); render(); renderArsip(); setStatus("Tersimpan",true); showTab("edit");
 }
-function newNota(base){
+function newNota(base,tpl){
   if(dirty) save(true);
-  const surat=isSurat(), jenis=doc.jenis||"nota";
+  const jenis=(tpl&&tpl.jenis)||(base&&base.jenis)||doc.jenis||"nota", surat=jenis==="surat";
   // Profil = surat terakhir dengan jenis yang sama: gaya, penanda tangan, TTE ikut terbawa
   const ref=(arsip.filter(a=>(a.data.jenis||"nota")===jenis && a.data.nama && !/^\[/.test(a.data.nama)).sort((a,b)=>b.updated-a.updated)[0]||{data:doc}).data;
   const gaya={}; Object.keys(FMT).concat(["indent"]).forEach(k=>{ if(ref[k]!==undefined) gaya[k]=ref[k]; });
@@ -1273,26 +1325,33 @@ function newNota(base){
              :"Disampaikan dengan hormat, \nDemikian kami sampaikan, mohon petunjuk dan arahan lebih lanjut. Atas perhatiannya, kami ucapkan terima kasih.",lampText:"",
     jabatan:ref.jabatan,nama:ref.nama,nip:ref.nip,pangkat:ref.pangkat,tembusan:""});
   if(base){ d.tanggal=today(); d.nomor=""; d.hal=(d.hal?"Salinan – "+d.hal:""); }
+  const namaKonsep=tpl&&tpl._nama;
+  if(tpl){ Object.keys(tpl).forEach(k=>{ if(k[0]!=="_" && tpl[k]!==undefined) d[k]=tpl[k]; }); d.tanggal=today(); d.nomor=""; }
+  delete d.status; delete d.riwayat;
   cur={id:uid(),created:Date.now(),updated:Date.now(),data:d}; arsip.unshift(cur);
   doc=structuredClone(d); save(true); fillForm(); render(); showTab("edit");
-  toast(base?"Salinan dibuat":(d.jenis==="surat"?"Surat baru dibuat":"Nota baru dibuat"));
+  if(namaKonsep && isianBerikut()) toast("Konsep “"+namaKonsep+"” dibuat. Ganti isian yang ditandai kuning.");
+  else toast(base?"Salinan dibuat":(d.jenis==="surat"?"Surat baru dibuat":"Nota baru dibuat"));
 }
-$("btnNew").addEventListener("click",()=>newNota());
+$("btnNew").addEventListener("click",()=>bukaGaleri());
 $("cari").addEventListener("input",renderArsip);
+$("fStatus").addEventListener("change",renderArsip);
 function renderArsip(){
   $("arsipCount").textContent="("+arsip.length+")";
   const q=$("cari").value.toLowerCase().trim();
-  const items=arsip.slice().sort((a,b)=>b.updated-a.updated).filter(a=>!q||[a.data.hal,a.data.kepada,a.data.nomor,a.data.dari].join(" ").toLowerCase().includes(q));
+  const fs=$("fStatus"); if(fs.options.length<2) ALUR.forEach(x=>fs.add(new Option(x[1],x[0])));
+  const items=arsip.slice().sort((a,b)=>b.updated-a.updated).filter(a=>!q||[a.data.hal,a.data.kepada,a.data.nomor,a.data.dari].join(" ").toLowerCase().includes(q)).filter(a=>!fs.value||statusOf(a.data)===fs.value);
   const box=$("arsipList"); box.innerHTML="";
   if(!items.length){box.innerHTML='<p class="hint">'+(q?"Tidak ada surat yang cocok dengan pencarian.":"Arsip kosong. Tekan “Surat baru” untuk mulai.")+'</p>';return}
   items.forEach(a=>{
     const el=document.createElement("div"); el.className="arsip-item"+(cur&&a.id===cur.id?" current":""); el.tabIndex=0;
-    el.innerHTML='<div class="t">'+esc(a.data.hal||"(tanpa hal)")+'</div>'+
+    el.innerHTML='<div class="t"><span class="st '+statusOf(a.data)+'">'+namaStatus(statusOf(a.data))+'</span>'+esc(a.data.hal||"(tanpa hal)")+'</div>'+
       '<div class="m">'+(a.data.jenis==="surat"?"Surat":"Nota")+" · "+esc(fmtTanggal(a.data.tanggal))+(a.data.nomor?" · "+esc(a.data.nomor):"")+" · Kepada: "+esc((lines(a.data.kepada)[0]||"–").replace(/^Yth\.\s*/,""))+'</div>'+
-      '<div class="tools"><button class="btn sm" type="button" data-a="dup">Gandakan</button><button class="btn sm danger" type="button" data-a="del">Hapus</button></div>';
+      '<div class="tools"><button class="btn sm" type="button" data-a="dup">Gandakan</button><button class="btn sm" type="button" data-a="tpl">Jadikan templat</button><button class="btn sm danger" type="button" data-a="del">Hapus</button></div>';
     el.addEventListener("click",ev=>{if(ev.target.closest("button"))return;openItem(a)});
     el.addEventListener("keydown",ev=>{if(ev.key==="Enter"&&ev.target===el)openItem(a)});
     el.querySelector('[data-a="dup"]').addEventListener("click",()=>newNota(a.data));
+    el.querySelector('[data-a="tpl"]').addEventListener("click",()=>jadikanTemplat(a));
     const del=el.querySelector('[data-a="del"]');
     del.addEventListener("click",()=>{
       if(!del.classList.contains("armed")){del.classList.add("armed");del.textContent="Yakin hapus?";setTimeout(()=>{if(del.isConnected){del.classList.remove("armed");del.textContent="Hapus"}},3000);return}
@@ -1303,6 +1362,153 @@ function renderArsip(){
     box.appendChild(el);
   });
 }
+
+/* ---------- Konsep surat (templat baku) ---------- */
+// Isian dalam [kurung siku] ditandai kuning di pratinjau dan diingatkan di daftar periksa
+const PENUTUP_S="Demikian kami sampaikan, atas perhatian dan kerja samanya diucapkan terima kasih.";
+const PENUTUP_N="Demikian kami sampaikan, mohon petunjuk dan arahan lebih lanjut. Atas perhatiannya, kami ucapkan terima kasih.";
+const KEP_PD="Bapak/Ibu Kepala Perangkat Daerah";
+const KONSEP=[
+ {id:"undangan",grup:"Undangan",nama:"Undangan rapat / kegiatan",ket:"Hari/Tanggal, Waktu, Tempat, Acara",jenis:"surat",sifat:"Penting",kepada:KEP_PD,
+  hal:"Undangan [Rapat Koordinasi …]",
+  isi:["Disampaikan dengan hormat, dalam rangka [maksud kegiatan, misalnya: koordinasi pelaksanaan …], bersama ini kami mengundang Bapak/Ibu atau pejabat yang ditunjuk untuk hadir pada:",
+   "Hari/Tanggal : [Senin, 2 November 2026]","Waktu : [09.00] WIB s.d. selesai","Tempat : [Aula Badan Kepegawaian dan Diklat Kabupaten Garut]","\tJalan Pahlawan Nomor 47 Garut","Acara : [Rapat Koordinasi …]",
+   "Mengingat pentingnya acara tersebut, kami mohon kehadiran Bapak/Ibu tepat pada waktunya.",PENUTUP_S]},
+ {id:"undangan-sesi",grup:"Undangan",nama:"Undangan bersesi / berjadwal",ket:"Waktu bertingkat: hari → sesi, menjorok",jenis:"surat",sifat:"Segera",kepada:"Bapak/Ibu Kepala Perangkat Daerah",
+  hal:"Undangan [Penandatanganan / Verifikasi …]",
+  isi:["Disampaikan dengan hormat, berdasarkan [dasar hukum atau surat], dengan ini kami mohon Bapak/Ibu untuk menghadirkan [pegawai yang bersangkutan] dalam rangka [nama kegiatan], yang akan dilaksanakan pada:",
+   "Hari/Tanggal : [Senin/2 November 2026 s.d. Jumat/6 November 2026]","Waktu : 1. Hari Senin s.d. Kamis","\t\tSesi I : 09.00 s.d. 10.30 WIB","\t\tSesi II : 10.30 s.d. 12.00 WIB","\t2. Hari Jumat","\t\tSesi I : 08.30 s.d. 10.00 WIB",
+   "Tempat : [nama tempat]","\t[alamat tempat]","Pakaian : [Pakaian dinas yang berlaku pada hari tersebut]","Catatan : [yang wajib dibawa]",
+   "Selanjutnya, jadwal per perangkat daerah sebagaimana terlampir pada tautan: [alamat tautan].","Demikian kami sampaikan, atas perhatian dan kerja samanya diucapkan terima kasih."]},
+ {id:"perubahan",grup:"Undangan",nama:"Perubahan jadwal / ralat undangan",ket:"Merujuk surat sebelumnya",jenis:"surat",sifat:"Segera",kepada:KEP_PD,
+  hal:"Perubahan Jadwal [nama kegiatan]",
+  isi:["Disampaikan dengan hormat, menindaklanjuti surat kami Nomor [nomor surat] tanggal [tanggal surat] perihal [hal surat], dengan ini kami beritahukan bahwa pelaksanaan kegiatan tersebut mengalami perubahan menjadi:",
+   "Hari/Tanggal : [Kamis, 5 November 2026]","Waktu : [09.00] WIB s.d. selesai","Tempat : [nama tempat]",
+   "Perubahan ini disebabkan [alasan perubahan]. Atas perubahan tersebut kami mohon maaf.",PENUTUP_S]},
+ {id:"narasumber",grup:"Permohonan",nama:"Permohonan narasumber",ket:"Kegiatan, waktu, materi, kontak",jenis:"surat",sifat:"Penting",kepada:"[jabatan narasumber]",
+  hal:"Permohonan Narasumber",
+  isi:["Disampaikan dengan hormat, dalam rangka [tujuan kegiatan], Badan Kepegawaian dan Diklat Kabupaten Garut akan menyelenggarakan [nama kegiatan] yang akan dilaksanakan pada:",
+   "Hari/Tanggal : [Senin, 2 November 2026]","Waktu : [09.00] WIB s.d. selesai","Tempat : [nama tempat]","Peserta : [jumlah dan unsur peserta]",
+   "Sehubungan dengan hal tersebut, kami mohon kesediaan Bapak/Ibu untuk menjadi narasumber dengan materi “[judul materi]”.",
+   "Untuk koordinasi lebih lanjut dapat menghubungi [nama petugas] (nomor telepon [08xx-xxxx-xxxx]).",PENUTUP_S]},
+ {id:"data",grup:"Permohonan",nama:"Permohonan data / informasi",ket:"Daftar data bernomor & batas waktu",jenis:"surat",sifat:"Segera",kepada:KEP_PD,
+  hal:"Permohonan Data [jenis data]",
+  isi:["Disampaikan dengan hormat, dalam rangka [maksud, misalnya: pemutakhiran data Aparatur Sipil Negara], kami mohon Bapak/Ibu berkenan menyampaikan data sebagai berikut:",
+   "1. [data pertama];","2. [data kedua]; dan","3. [data ketiga].",
+   "Data tersebut kami harapkan sudah diterima paling lambat tanggal [30 November 2026] melalui [cara penyampaian: surel/aplikasi/langsung].",PENUTUP_S]},
+ {id:"petugas",grup:"Permohonan",nama:"Permohonan penugasan petugas",ket:"Meminta instansi lain menugaskan petugas",jenis:"surat",sifat:"Penting",kepada:"[jabatan pimpinan instansi]",
+  hal:"Permohonan Petugas [jenis petugas]",
+  isi:["Disampaikan dengan hormat, berdasarkan [dasar hukum], Pemerintah Kabupaten Garut akan melaksanakan [nama kegiatan] yang akan dilaksanakan pada:",
+   "Hari/Tanggal : [Senin, 2 November 2026]","Waktu : [08.00] WIB s.d. selesai","Tempat : [nama tempat]",
+   "Sehubungan dengan hal tersebut, kami mohon Bapak/Ibu berkenan menugaskan [jumlah] ([terbilang]) orang [jenis petugas] untuk pelaksanaan kegiatan tersebut.",
+   "Demikian kami sampaikan. Atas perhatian dan perkenannya diucapkan terima kasih."]},
+ {id:"tempat",grup:"Permohonan",nama:"Permohonan peminjaman tempat",ket:"Ruang/aula untuk kegiatan",jenis:"surat",sifat:"Biasa",kepada:"[jabatan pengelola tempat]",
+  hal:"Permohonan Peminjaman [nama ruang/aula]",
+  isi:["Disampaikan dengan hormat, dalam rangka pelaksanaan [nama kegiatan], kami bermaksud meminjam [nama ruang/aula] yang akan digunakan pada:",
+   "Hari/Tanggal : [Senin, 2 November 2026]","Waktu : [08.00] s.d. [16.00] WIB","Peserta : [jumlah] orang",
+   "Sehubungan dengan hal tersebut, kami mohon Bapak/Ibu berkenan memberikan izin penggunaan tempat dimaksud.",
+   "Demikian kami sampaikan. Atas perhatian dan perkenannya diucapkan terima kasih."]},
+ {id:"pemberitahuan",grup:"Pemberitahuan & penyampaian",nama:"Pemberitahuan",ket:"Dasar, isi pemberitahuan, tindak lanjut",jenis:"surat",sifat:"Biasa",kepada:KEP_PD,
+  hal:"Pemberitahuan [pokok pemberitahuan]",
+  isi:["Disampaikan dengan hormat, berdasarkan [dasar hukum atau surat rujukan], dengan ini kami beritahukan bahwa [isi pemberitahuan].",
+   "Sehubungan dengan hal tersebut, kami mohon Bapak/Ibu dapat:","1. [tindak lanjut pertama];","2. [tindak lanjut kedua]; dan","3. [tindak lanjut ketiga].",PENUTUP_S]},
+ {id:"penyampaian",grup:"Pemberitahuan & penyampaian",nama:"Penyampaian dokumen (SK, petikan, dll.)",ket:"Bersama ini kami sampaikan … terlampir",jenis:"surat",sifat:"Penting",kepada:KEP_PD,lampiran:"1 (satu) berkas",
+  hal:"Penyampaian [nama dokumen]",
+  isi:["Disampaikan dengan hormat, menindaklanjuti [proses atau surat rujukan], bersama ini kami sampaikan [nama dokumen] atas nama pegawai di lingkungan unit kerja Bapak/Ibu sebanyak [jumlah] berkas sebagaimana terlampir.",
+   "Kami mohon Bapak/Ibu dapat menyampaikan dokumen tersebut kepada pegawai yang bersangkutan dan [tindak lanjut lain].",PENUTUP_S]},
+ {id:"jawaban",grup:"Pemberitahuan & penyampaian",nama:"Jawaban / tanggapan atas surat",ket:"Menindaklanjuti surat Nomor … tanggal …",jenis:"surat",sifat:"Biasa",kepada:"[jabatan pengirim surat]",
+  hal:"Tanggapan atas [hal surat yang dijawab]",
+  isi:["Disampaikan dengan hormat, menindaklanjuti surat Bapak/Ibu Nomor [nomor surat] tanggal [tanggal surat] perihal [hal surat], dengan ini kami sampaikan hal-hal sebagai berikut:",
+   "1. [tanggapan pertama];","2. [tanggapan kedua]; dan","3. [tanggapan ketiga].",PENUTUP_S]},
+ {id:"usul",grup:"Kepegawaian",nama:"Usul ke BKN (kenaikan pangkat, pensiun, dll.)",ket:"Daftar pegawai dalam lampiran tabel",jenis:"surat",sifat:"Penting",kepada:"Kepala Kantor Regional III Badan Kepegawaian Negara",diTempat:"Bandung",lampiran:"1 (satu) berkas",
+  hal:"Usul [Kenaikan Pangkat] Pegawai Negeri Sipil\nPeriode [April 2027]",
+  isi:["Disampaikan dengan hormat, bersama ini kami sampaikan usul [kenaikan pangkat] Pegawai Negeri Sipil di Lingkungan Pemerintah Kabupaten Garut periode [April 2027] sebanyak [jumlah] orang, dengan daftar nama sebagaimana terlampir.",
+   "Berkas persyaratan telah kami unggah melalui [aplikasi layanan BKN] dan telah diverifikasi kelengkapannya.",
+   "Demikian kami sampaikan, atas perhatian dan kerja samanya diucapkan terima kasih."],
+  lampText:["DAFTAR USUL [KENAIKAN PANGKAT] PERIODE [APRIL 2027]","No | Nama | NIP | Pangkat/Gol. Lama | Pangkat/Gol. Baru","1 | [nama] | [NIP] | [pangkat lama] | [pangkat baru]","2 | [nama] | [NIP] | [pangkat lama] | [pangkat baru]"]},
+ {id:"pemanggilan",grup:"Kepegawaian",nama:"Pemanggilan pegawai (non-disiplin)",ket:"Klarifikasi data, verifikasi berkas",jenis:"surat",sifat:"Segera",kepada:"[Nama Pegawai]\n[Jabatan dan Unit Kerja]",
+  hal:"Pemanggilan",
+  isi:["Disampaikan dengan hormat, dalam rangka [klarifikasi data kepegawaian / verifikasi berkas], dengan ini kami mohon Saudara untuk hadir pada:",
+   "Hari/Tanggal : [Senin, 2 November 2026]","Waktu : [09.00] WIB","Tempat : Badan Kepegawaian dan Diklat Kabupaten Garut","\tJalan Pahlawan Nomor 47 Garut","Menghadap : [nama pejabat/petugas]",
+   "dengan membawa [dokumen yang perlu dibawa].","Demikian untuk dilaksanakan."]},
+ {id:"laporan",grup:"Nota dinas",nama:"Nota dinas laporan hasil kegiatan",ket:"Dasar, pelaksanaan, hasil, saran",jenis:"nota",sifat:"Biasa",kepada:"Yth. Kepala Badan Kepegawaian dan Diklat Kabupaten Garut",
+  hal:"Laporan Hasil [nama kegiatan]",
+  isi:["Disampaikan dengan hormat, berdasarkan [surat tugas/disposisi Nomor … tanggal …], bersama ini kami laporkan hasil pelaksanaan [nama kegiatan] sebagai berikut:",
+   "Pelaksanaan","Hari/Tanggal : [Senin, 2 November 2026]","Tempat : [nama tempat]","Peserta : [unsur dan jumlah peserta]",
+   "Hasil Kegiatan","1. [hasil pertama];","2. [hasil kedua]; dan","3. [hasil ketiga].",
+   "Saran dan Tindak Lanjut","1. [saran pertama];","2. [saran kedua].",PENUTUP_N]},
+ {id:"persetujuan",grup:"Nota dinas",nama:"Nota dinas permohonan persetujuan",ket:"Pertimbangan bernomor, mohon persetujuan",jenis:"nota",sifat:"Penting",kepada:"Yth. Kepala Badan Kepegawaian dan Diklat Kabupaten Garut",
+  hal:"Permohonan Persetujuan [hal yang dimohonkan]",
+  isi:["Disampaikan dengan hormat, dalam rangka [maksud], kami mohon persetujuan Bapak/Ibu atas [hal yang dimohonkan], dengan pertimbangan sebagai berikut:",
+   "1. [pertimbangan pertama];","2. [pertimbangan kedua]; dan","3. [pertimbangan ketiga].",
+   "Apabila Bapak/Ibu berkenan, kami mohon persetujuan dan penandatanganan atas [konsep surat/keputusan] sebagaimana terlampir.",PENUTUP_N]},
+ {id:"tindaklanjut",grup:"Nota dinas",nama:"Nota dinas tindak lanjut disposisi",ket:"Menindaklanjuti surat masuk/disposisi",jenis:"nota",sifat:"Biasa",kepada:"Yth. Kepala Badan Kepegawaian dan Diklat Kabupaten Garut",
+  hal:"Tindak Lanjut [hal surat masuk]",
+  isi:["Disampaikan dengan hormat, menindaklanjuti disposisi Bapak/Ibu atas surat [instansi pengirim] Nomor [nomor surat] tanggal [tanggal surat] perihal [hal surat], kami sampaikan hal-hal sebagai berikut:",
+   "1. [isi surat masuk secara singkat];","2. [langkah yang sudah dilakukan]; dan","3. [usulan tindak lanjut].",PENUTUP_N]}
+];
+const LS_TPL="notadinas.templat.v1";
+let templatSaya=store.get(LS_TPL,[]);
+const PH=/\[[^\]\n]{2,80}\]/g; // isian yang belum diganti
+function bukaGaleri(){
+  const dlg=$("galeri"), q=$("galeriCari").value.toLowerCase().trim();
+  const cocok=t=>!q||[t.nama,t.ket,t.hal,t.grup].join(" ").toLowerCase().includes(q);
+  const kartu=(id,nama,ket,jenis,hapus)=>'<button type="button" class="kartu" data-t="'+esc(id)+'"><b>'+esc(nama)+'</b><span>'+esc(ket)+'</span><i class="j-'+jenis+'">'+(jenis==="surat"?"Surat Dinas":"Nota Dinas")+'</i>'+(hapus?'<span class="hapus" data-hapus="'+esc(id)+'" title="Hapus templat">✕</span>':'')+'</button>';
+  let h='<h3>Mulai kosong</h3><div class="kartu-grid">'+kartu("kosong:surat","Surat Dinas kosong","Kop, Kepada Yth, … di …","surat")+kartu("kosong:nota","Nota Dinas kosong","Kepada, Dari, Tanggal, Hal","nota")+'</div>';
+  const ts=templatSaya.filter(t=>cocok({nama:t.nama,ket:"",hal:t.data.hal,grup:"saya"}));
+  if(ts.length) h+='<h3>Templat saya</h3><div class="kartu-grid">'+ts.map(t=>kartu("saya:"+t.id,t.nama,"Disimpan "+new Date(t.dibuat).toLocaleDateString("id-ID"),t.data.jenis||"nota",true)).join("")+'</div>';
+  [...new Set(KONSEP.map(t=>t.grup))].forEach(g=>{ const ks=KONSEP.filter(t=>t.grup===g && cocok(t)); if(ks.length) h+='<h3>'+esc(g)+'</h3><div class="kartu-grid">'+ks.map(t=>kartu("konsep:"+t.id,t.nama,t.ket,t.jenis)).join("")+'</div>'; });
+  $("galeriIsi").innerHTML=h;
+  if(!dlg.open) dlg.showModal();
+}
+$("galeriCari").addEventListener("input",bukaGaleri);
+$("galeriTutup").addEventListener("click",()=>$("galeri").close());
+$("galeriIsi").addEventListener("click",e=>{
+  const hp=e.target.closest("[data-hapus]");
+  if(hp){ e.stopPropagation(); templatSaya=templatSaya.filter(t=>"saya:"+t.id!==hp.dataset.hapus); store.set(LS_TPL,templatSaya); bukaGaleri(); toast("Templat dihapus"); return; }
+  const b=e.target.closest(".kartu"); if(!b) return;
+  const [jenisSumber,id]=b.dataset.t.split(":"); $("galeri").close();
+  if(jenisSumber==="kosong") return newNota(null,{jenis:id});
+  if(jenisSumber==="saya"){ const t=templatSaya.find(x=>x.id===id); if(t) newNota(null,Object.assign(structuredClone(t.data),{_nama:t.nama})); return; }
+  const k=KONSEP.find(x=>x.id===id); if(!k) return;
+  newNota(null,{_nama:k.nama,jenis:k.jenis,hal:k.hal,sifat:k.sifat,kepada:k.kepada,diTempat:k.diTempat||"",lampiran:k.lampiran||"",isi:k.isi.join("\n"),lampText:(k.lampText||[]).join("\n")});
+});
+// Surat apa pun (misalnya yang ditempel dari SRIKANDI) bisa disimpan sebagai templat sendiri
+function jadikanTemplat(a){
+  const d=structuredClone(a.data); ["nomor","tanggal","status","riwayat"].forEach(k=>delete d[k]);
+  templatSaya.unshift({id:uid(),nama:oneLine(a.data.hal||"Templat tanpa hal").slice(0,80),dibuat:Date.now(),data:d});
+  store.set(LS_TPL,templatSaya); toast("Disimpan sebagai templat. Pakai lewat “Surat baru”.");
+}
+// Pilih isian [ … ] berikutnya di kolomnya agar langsung bisa diketik ulang
+function isianBerikut(){
+  for(const f of ["kepada","hal","isi","lampText","tembusan","diTempat"]){
+    const el=$("f-"+f), v=el.value, from=(document.activeElement===el?el.selectionEnd:0);
+    PH.lastIndex=0; let m, pick=null; while((m=PH.exec(v))){ if(m.index>=from){pick=m;break} }
+    if(!pick && document.activeElement===el){ PH.lastIndex=0; pick=PH.exec(v); }
+    if(pick){ const dt=el.closest("details"); if(dt) dt.open=true; showTab("edit"); el.focus(); el.setSelectionRange(pick.index,pick.index+pick[0].length); return true; }
+  }
+  return false;
+}
+/* ---------- Alur naskah (mengikuti alur naskah keluar di SRIKANDI) ---------- */
+const ALUR=[["konsep","Konsep"],["koreksi","Diperiksa"],["setuju","Disetujui"],["ttd","Ditandatangani"],["kirim","Terkirim"]];
+const statusOf = d => d.status || "konsep";
+const namaStatus = s => (ALUR.find(x=>x[0]===s)||ALUR[0])[1];
+function renderAlur(){
+  const s=statusOf(doc), i=ALUR.findIndex(x=>x[0]===s);
+  $("alurStep").innerHTML=ALUR.map((x,j)=>'<button type="button" data-s="'+x[0]+'" class="'+(j<i?"done":j===i?"now":"")+'" aria-pressed="'+(j===i)+'"><span>'+(j+1)+'</span>'+x[1]+'</button>').join("");
+  const r=(doc.riwayat||[]).slice(-1)[0];
+  $("alurInfo").textContent = r ? namaStatus(r.s)+" · "+new Date(r.t).toLocaleString("id-ID",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}) : "Belum diproses";
+}
+$("alurStep").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-s]"); if(!b || b.dataset.s===statusOf(doc)) return;
+  const s=b.dataset.s, i=ALUR.findIndex(x=>x[0]===s);
+  doc.status=s; (doc.riwayat=doc.riwayat||[]).push({s,t:Date.now()});
+  changed(); clearTimeout(saveTimer); save(true); renderAlur(); // status langsung tersimpan
+  const w=$("cekBadge").hidden?0:+$("cekBadge").textContent;
+  if(i>=2 && w) toast("Catatan: masih ada "+w+" hal di daftar periksa.");
+  else if(s==="ttd" && !(doc.nomor||"").trim()) toast("Isi nomor surat dari SRIKANDI setelah ditandatangani.");
+  else toast("Status: "+namaStatus(s));
+});
 
 /* ---------- Tab ---------- */
 function showTab(t){
