@@ -300,7 +300,7 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
 <header class="top">
   <div class="brand">
     <img id="brandLogo" alt="">
-    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 22.45</small></div>
+    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 23.00</small></div>
   </div>
   <div class="actions">
     <button class="btn" id="btnNew" type="button">Surat baru</button>
@@ -803,9 +803,9 @@ function tingkatOtomatis(raw,W){
   const inf=tingkatBaris(raw,W), lv=inf.map(x=>x.kosong?-1:x.lv), auto=raw.map(()=>false);
   let on=false, num=false;
   raw.forEach((s,i)=>{ const l=s.trim(); if(!l) return;
-    if(RINCI_UTAMA.test(l)){ lv[i]=0; auto[i]=true; on=true; num=/:[\s\u200A]*\d{1,2}[.)]\s/.test(l); return; }
-    if(!on) return;
     const sendiri=LEAD_ADA.test(s) && inf[i].pas;               // digeser sendiri (lurus dengan teks di atasnya): pilihan pengguna dipakai
+    if(RINCI_UTAMA.test(l) && !sendiri){ lv[i]=0; auto[i]=true; on=true; num=/:[\s\u200A]*\d{1,2}[.)]\s/.test(l); return; }
+    if(!on) return;
     if(akhirRincian(l) && !sendiri){ on=false; lv[i]=0; return; }
     if(sendiri) return;
     auto[i]=true;
@@ -847,7 +847,7 @@ function geserBaris(lines,i,mundur,W){
   const ld=lines[i].match(LEAD)[0], x0=!ld.length ? 0 : t ? tingkatBaris(lines.slice(0,i+1),W)[i].x : W(ld.replace(/\t/g,"    "));
   let x;
   if(mundur){ const c=st.filter(j=>j.x<x0-sw*.6).map(j=>j.x); x=c.length?Math.max(...c):0; }
-  else { const c=st.filter(j=>j.x>x0+sw*.6).map(j=>j.x); if(!c.length) return lines[i]; x=Math.min(...c); } // sudah paling dalam
+  else { const c=st.filter(j=>j.x>x0+sw*.6).map(j=>j.x); if(c.length) x=Math.min(...c); else if(st.some(j=>j.x>=x0-sw*.6)) return lines[i]; else { x=x0+W("    "); if(x>W("    ")*24) return lines[i]; } } // tanpa titik acuan sama sekali: maju satu langkah
   // digeser ke paling kiri padahal aturan otomatis akan menjorokkannya: beri penanda tipis agar tetap di kiri
   if(!x && tingkatOtomatis(lines.slice(0,i).concat(t),W).lv[i]>0) return HS+t;
   return padPx(x,W)+t;
@@ -1068,8 +1068,12 @@ function geserPilihan(ta,mundur){
   const i0=v0.slice(0,a0).split("\n").length-1, i1=v0.slice(0,z0>a0&&v0[z0-1]==="\n"?z0-1:z0).split("\n").length-1;
   const asal=v0.split("\n"), semua=luruskan(v0).split("\n");   // dirapikan dulu (posisi sama dengan pratinjau), lalu digeser
   for(let i=i0;i<=i1;i++) if(!asal[i].trim()) semua[i]=asal[i];   // baris yang baru berisi spasi tetap di posisinya
+  const sebelum=semua.slice(i0,i1+1).join("\n");
   for(let i=i0;i<=i1;i++) semua[i]=geserBaris(semua,i,mundur,W);
   const v=semua.join("\n"), awal=i=>semua.slice(0,i).join("\n").length+(i?1:0);
+  const geser=semua.slice(i0,i1+1).join("\n")!==sebelum, n=i1-i0+1;
+  toast(!geser ? (mundur?"Baris ini sudah paling kiri":"Baris ini sudah paling kanan")
+    : (n>1?n+" baris":"Baris “"+oneLine(semua[i0]).slice(0,40)+"”")+" digeser ke "+(mundur?"kiri":"kanan"));
   ta.value=v;
   if(a0===z0){ const p=awal(i0)+semua[i0].length; ta.selectionStart=ta.selectionEnd=p; } else { ta.selectionStart=awal(i0); ta.selectionEnd=awal(i1)+semua[i1].length; }
   ta.dispatchEvent(new Event("input",{bubbles:true}));
@@ -1081,8 +1085,10 @@ function geserPilihan(ta,mundur){
 }));
 // Tombol Geser kiri / Geser kanan di atas kotak (kursor tetap di kotak)
 document.querySelectorAll(".isi-alat").forEach(bar=>{
-  bar.addEventListener("mousedown",e=>{ if(e.target.closest("button")) e.preventDefault(); });
-  bar.addEventListener("click",e=>{ const b=e.target.closest("button[data-geser]"); if(!b) return; const ta=$(bar.dataset.for); ta.focus(); geserPilihan(ta,b.dataset.geser==="kiri"); });
+  bar.addEventListener("mousedown",e=>{ if(e.target.closest("button")){ e.preventDefault(); bar.fokus=document.activeElement===$(bar.dataset.for); } });
+  bar.addEventListener("click",e=>{ const b=e.target.closest("button[data-geser]"); if(!b) return; const ta=$(bar.dataset.for);
+    if(!bar.fokus && e.detail){ ta.focus(); toast("Klik dulu baris yang mau digeser di kotak isi, lalu klik tombol ini lagi."); return; } // belum memilih baris
+    ta.focus(); geserPilihan(ta,b.dataset.geser==="kiri"); });
 });
 ["f-isi","f-lampText"].forEach(id=>$(id).addEventListener("keydown",e=>{
   if(e.key!=="Enter"||e.shiftKey||e.ctrlKey||e.altKey||e.isComposing) return;
