@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Kabar SRIKANDI untuk Surat Menyurat BKD Garut",
+  "short_name": "Kabar SRIKANDI",
+  "version": "1.0.0",
+  "description": "Membaca status naskah di SRIKANDI yang Anda buka sendiri, lalu meneruskannya ke aplikasi Surat Menyurat BKD Garut. Data tetap di komputer Anda.",
+  "permissions": ["storage", "downloads"],
+  "host_permissions": ["https://srikandi.arsip.go.id/*", "https://*.srikandi.arsip.go.id/*"],
+  "background": { "service_worker": "latar.js" },
+  "content_scripts": [
+    {
+      "matches": ["https://srikandi.arsip.go.id/*", "https://*.srikandi.arsip.go.id/*"],
+      "js": ["srikandi-halaman.js"],
+      "world": "MAIN",
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["https://srikandi.arsip.go.id/*", "https://*.srikandi.arsip.go.id/*"],
+      "js": ["srikandi.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://arhbkdgarut-web.github.io/aher-surat_menyurat/*",
+        "file:///*aplikasi-nota-dinas.html",
+        "file:///*surat_menyurat*index.html"
+      ],
+      "js": ["aplikasi.js"],
+      "run_at": "document_start"
+    }
+  ]
+}

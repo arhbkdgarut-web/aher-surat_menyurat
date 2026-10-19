@@ -1,0 +1,18 @@
+KABAR SRIKANDI - ekstensi Chrome untuk aplikasi Surat Menyurat BKD Garut
+
+Gunanya: begitu Anda membuka SRIKANDI di Chrome, status naskah (sudah ber-TTE atau belum)
+terbaca sendiri dan muncul di aplikasi Surat Menyurat:
+  "✓ Sudah ber-TTE di SRIKANDI, siap diunduh"  lalu, setelah PDF-nya diunduh,
+  "✓ PDF ber-TTE tersimpan".
+Tidak perlu klik apa pun. Data hanya disimpan di komputer Anda sendiri.
+
+Cara memasang (sekali saja):
+ 1. Ekstrak (Extract All) berkas ekstensi-srikandi.zip ke folder tetap, misalnya Dokumen\ekstensi-srikandi.
+    Jangan dihapus setelah dipasang.
+ 2. Di Chrome buka alamat:  chrome://extensions
+ 3. Nyalakan "Mode pengembang" (Developer mode) di kanan atas.
+ 4. Klik "Muat yang belum dibuka" (Load unpacked), pilih folder ekstensi-srikandi tadi.
+ 5. Muat ulang (F5) aplikasi Surat Menyurat. Di tab Arsip tertulis "Ekstensi SRIKANDI aktif".
+
+Bila aplikasi dibuka dari file di komputer (bukan dari internet), di chrome://extensions klik
+"Detail" pada Kabar SRIKANDI lalu nyalakan "Izinkan akses ke URL file".

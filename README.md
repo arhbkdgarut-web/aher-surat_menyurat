@@ -16,3 +16,6 @@ Buka aplikasinya di: https://arhbkdgarut-web.github.io/aher-surat_menyurat/
   ditandai kuning dan ditunjuk satu per satu dari daftar periksa.
 - Surat apa pun di Arsip (misalnya yang ditempel dari SRIKANDI) bisa **Jadikan templat**.
 - Alur naskah: Konsep → Diperiksa → Disetujui → Ditandatangani → Terkirim, dengan riwayat dan saringan di Arsip.
+- **Kabar SRIKANDI** (ekstensi Chrome, folder `ekstensi-srikandi/`, unduh `ekstensi-srikandi.zip`):
+  cukup buka SRIKANDI, status naskah terbaca sendiri. Di Arsip muncul "✓ Sudah ber-TTE di SRIKANDI, siap diunduh",
+  lalu "✓ PDF ber-TTE tersimpan" setelah PDF diunduh. Nomor dari SRIKANDI ikut terisi. Cara pasang: lihat `BACA-SAYA.txt`.

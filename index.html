@@ -228,6 +228,11 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
 .alur-ol{margin:6px 0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
 .st{font-size:11px;border-radius:4px;padding:0 6px;background:var(--accent-soft);color:var(--accent);font-weight:600;margin-right:4px}
 .st.konsep{background:color-mix(in srgb,var(--gold) 16%,var(--panel));color:var(--fg)}
+.sk{font-size:12px;color:var(--muted)}
+.sk.ok{color:var(--accent);font-weight:600}
+.sk a,.sk-banner a{color:inherit}
+.sk-banner{border-radius:6px;padding:6px 10px;font-size:12.5px;background:var(--accent-soft);color:var(--accent);font-weight:600}
+.sk-banner.proses{background:color-mix(in srgb,var(--gold) 14%,var(--panel));color:var(--fg);font-weight:400}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 14px;border-radius:6px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
 .toast.show{opacity:1}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
@@ -260,7 +265,7 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
 <header class="top">
   <div class="brand">
     <img id="brandLogo" alt="">
-    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 17.00</small></div>
+    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 18.00</small></div>
   </div>
   <div class="actions">
     <button class="btn" id="btnNew" type="button">Surat baru</button>
@@ -288,6 +293,7 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
     <form class="pane" id="pane-edit" autocomplete="off">
       <div class="alur">
         <div class="alur-step" id="alurStep" role="group" aria-label="Status naskah"></div>
+        <div class="sk-banner" id="skBanner" hidden></div>
         <details class="bantuan"><summary>Alur naskah keluar <small id="alurInfo"></small></summary>
           <ol class="hint alur-ol">
             <li><b>Konsep</b>: susun di aplikasi ini. Pakai <b>Surat baru</b> untuk memilih konsep baku. Pastikan daftar periksa hijau, lalu <b>Unduh Word</b>.</li>
@@ -413,6 +419,21 @@ mark.ph{background:#fff1a8;color:inherit;border-radius:2px}
         <select id="fStatus" aria-label="Saring status" style="max-width:9.5em"><option value="">Semua status</option></select>
       </div>
       <div class="list" id="arsipList"></div>
+      <hr class="sep">
+      <fieldset id="skBox">
+        <legend>Kabar dari SRIKANDI</legend>
+        <p class="hint" id="skAktif" hidden>✓ <b>Ekstensi SRIKANDI aktif.</b> Buka SRIKANDI seperti biasa di Chrome ini; surat yang sudah ber-TTE ditandai sendiri di sini, begitu juga PDF ber-TTE yang Anda unduh.</p>
+        <div id="skPasang">
+          <p class="hint">Pasang ekstensi kecil sekali saja, maka status TTE di SRIKANDI terbaca sendiri tanpa klik dan muncul di sini: <b>“✓ Sudah ber-TTE di SRIKANDI, siap diunduh”</b>, lalu <b>“✓ PDF ber-TTE tersimpan”</b> setelah PDF-nya diunduh.</p>
+          <ol class="hint alur-ol">
+            <li><a href="ekstensi-srikandi.zip" download>Unduh ekstensi (.zip)</a>, klik kanan → <i>Extract All</i> ke folder tetap (misalnya Dokumen).</li>
+            <li>Buka <code>chrome://extensions</code>, nyalakan <i>Mode pengembang</i> di kanan atas.</li>
+            <li>Klik <i>Muat yang belum dibuka</i> (Load unpacked), pilih folder <b>ekstensi-srikandi</b>.</li>
+            <li>Tekan F5 di aplikasi ini. Tulisan ini berganti “Ekstensi SRIKANDI aktif”.</li>
+          </ol>
+          <p class="hint">Ekstensi hanya membaca halaman SRIKANDI yang Anda buka sendiri dan menyimpannya di komputer ini. Tidak ada kata sandi yang dibaca atau dikirim ke mana pun.</p>
+        </div>
+      </fieldset>
       <hr class="sep">
       <fieldset>
         <legend>Cadangan</legend>
@@ -635,7 +656,7 @@ function fillForm(){
   $("f-lampiran").placeholder = e.lampiran ? "otomatis: "+e.lampiran : "otomatis bila ada lampiran";
   $("f-lampJudul").placeholder="otomatis: "+lampJudul(doc);
   $("lampBox").open = $("lampBox").open || !!(doc.lampText||"").trim();
-  renderAlur();
+  renderAlur(); renderSk();
   segarkanOtomatis();
 }
 // Bagian yang berubah mengikuti ketikan (tanpa menimpa isian pengguna)
@@ -1404,7 +1425,7 @@ function newNota(base,tpl){
   if(base){ d.tanggal=today(); d.nomor=""; d.hal=(d.hal?"Salinan – "+d.hal:""); }
   const namaKonsep=tpl&&tpl._nama;
   if(tpl){ Object.keys(tpl).forEach(k=>{ if(k[0]!=="_" && tpl[k]!==undefined) d[k]=tpl[k]; }); d.tanggal=today(); d.nomor=""; }
-  delete d.status; delete d.riwayat;
+  delete d.status; delete d.riwayat; delete d.srikandi;
   cur={id:uid(),created:Date.now(),updated:Date.now(),data:d}; arsip.unshift(cur);
   doc=structuredClone(d); save(true); fillForm(); render(); showTab("edit");
   if(namaKonsep && isianBerikut()) toast("Konsep “"+namaKonsep+"” dibuat. Ganti isian yang ditandai kuning.");
@@ -1425,7 +1446,8 @@ function renderArsip(){
     el.innerHTML='<div class="t"><span class="st '+statusOf(a.data)+'">'+namaStatus(statusOf(a.data))+'</span>'+esc(a.data.hal||"(tanpa hal)")+'</div>'+
       '<div class="m">'+(a.data.jenis==="surat"?"Surat":"Nota")+" · "+esc(fmtTanggal(a.data.tanggal))+(a.data.nomor?" · "+esc(a.data.nomor):"")+" · Kepada: "+esc((lines(a.data.kepada)[0]||"–").replace(/^Yth\.\s*/,""))+'</div>'+
       '<div class="tools"><button class="btn sm" type="button" data-a="dup">Gandakan</button><button class="btn sm" type="button" data-a="tpl">Jadikan templat</button><button class="btn sm danger" type="button" data-a="del">Hapus</button></div>';
-    el.addEventListener("click",ev=>{if(ev.target.closest("button"))return;openItem(a)});
+    const sk=kabarSk(a.data); if(sk) el.querySelector(".m").insertAdjacentHTML("afterend",'<div class="sk'+(sk.ok?" ok":"")+'">'+sk.html+'</div>');
+    el.addEventListener("click",ev=>{if(ev.target.closest("button,a"))return;openItem(a)});
     el.addEventListener("keydown",ev=>{if(ev.key==="Enter"&&ev.target===el)openItem(a)});
     el.querySelector('[data-a="dup"]').addEventListener("click",()=>newNota(a.data));
     el.querySelector('[data-a="tpl"]').addEventListener("click",()=>jadikanTemplat(a));
@@ -1552,7 +1574,7 @@ $("galeriIsi").addEventListener("click",e=>{
 });
 // Surat apa pun (misalnya yang ditempel dari SRIKANDI) bisa disimpan sebagai templat sendiri
 function jadikanTemplat(a){
-  const d=structuredClone(a.data); ["nomor","tanggal","status","riwayat"].forEach(k=>delete d[k]);
+  const d=structuredClone(a.data); ["nomor","tanggal","status","riwayat","srikandi"].forEach(k=>delete d[k]);
   templatSaya.unshift({id:uid(),nama:oneLine(a.data.hal||"Templat tanpa hal").slice(0,80),dibuat:Date.now(),data:d});
   store.set(LS_TPL,templatSaya); toast("Disimpan sebagai templat. Pakai lewat “Surat baru”.");
 }
@@ -1586,6 +1608,71 @@ $("alurStep").addEventListener("click",e=>{
   else if(s==="ttd" && !(doc.nomor||"").trim()) toast("Isi nomor surat dari SRIKANDI setelah ditandatangani.");
   else toast("Status: "+namaStatus(s));
 });
+
+/* ---------- Kabar SRIKANDI (dari ekstensi Chrome "Kabar SRIKANDI") ---------- */
+// Ekstensi membaca status naskah di SRIKANDI yang dibuka pengguna; di sini dicocokkan dengan surat di arsip
+const normNo = s => String(s||"").replace(/\s+/g,"").toLowerCase();
+const kataHal = s => new Set(String(s||"").toLowerCase().split(/[^a-z0-9]+/).filter(w=>w.length>=4));
+function miripHal(a,b){ const A=kataHal(a), B=kataHal(b); if(!A.size||!B.size) return 0; let s=0; A.forEach(w=>{ if(B.has(w)) s++; }); return s/Math.max(A.size,B.size); }
+function cocokkanSk(r){
+  const n=normNo(r.nomor);
+  if(n){ const a=arsip.find(a=>normNo(a.data.nomor)===n); if(a) return a; }
+  let best=null, sk=0;
+  arsip.forEach(a=>{ if(n && a.data.nomor && normNo(a.data.nomor)!==n) return; const s=miripHal(a.data.hal,r.hal); if(s>sk){ sk=s; best=a; } });
+  return sk>=.6 ? best : null;
+}
+// PDF yang diunduh: lewat naskah yang terakhir diklik di SRIKANDI, nomor urut di nama berkas, atau kemiripan nama berkas
+function cocokkanUnduhan(u){
+  if(u.naskah){ const a=cocokkanSk(u.naskah); if(a) return a; }
+  const f=String(u.file||"").toLowerCase(), angka=new Set(f.match(/\d+/g)||[]);
+  const kandidat=arsip.filter(a=>a.data.srikandi && a.data.srikandi.tte);
+  const lewatNomor=kandidat.find(a=>{ const p=String(a.data.nomor||"").split("/"); return p.length>=3 && angka.has(String(+p[1].replace(/\D/g,"")||"x")); });
+  if(lewatNomor) return lewatNomor;
+  let best=null, sk=0; kandidat.forEach(a=>{ const s=miripHal(a.data.hal,f.replace(/[_\-.]+/g," ")); if(s>sk){ sk=s; best=a; } });
+  return sk>=.6 ? best : null;
+}
+const ALUR_IDX = s => ALUR.findIndex(x=>x[0]===s);
+let ekstensiSk=null;
+function terapkanSrikandi(naskah,unduhan){
+  const baru=[]; let ubah=false;
+  const ganti=(a,f)=>{ const d=a.data, sebelum=JSON.stringify(d); f(d); if(cur && a.id===cur.id) f(doc); if(JSON.stringify(d)!==sebelum) ubah=true; };
+  naskah.forEach(r=>{
+    if(r.tte===null || r.tte===undefined) return;
+    const a=cocokkanSk(r); if(!a) return;
+    const lama=a.data.srikandi||{};
+    if(r.tte===true){
+      if(!lama.tte) baru.push(a);
+      ganti(a,d=>{ d.srikandi=Object.assign({},d.srikandi,{tte:true,status:r.status||"",url:r.url||"",nomor:r.nomor||"",sejak:(d.srikandi&&d.srikandi.sejak)||r.tteSejak||Date.now()});
+        if(!(d.nomor||"").trim() && r.nomor) d.nomor=r.nomor;                         // nomor dari SRIKANDI
+        if(ALUR_IDX(statusOf(d))<ALUR_IDX("ttd")){ d.status="ttd"; (d.riwayat=d.riwayat||[]).push({s:"ttd",t:Date.now(),srikandi:true}); } });
+    } else if(!lama.tte){
+      ganti(a,d=>{ d.srikandi=Object.assign({},d.srikandi,{tte:false,status:r.status||"",url:r.url||""});
+        if(statusOf(d)==="konsep"){ d.status="koreksi"; (d.riwayat=d.riwayat||[]).push({s:"koreksi",t:Date.now(),srikandi:true}); } });
+    }
+  });
+  unduhan.forEach(u=>{ const a=cocokkanUnduhan(u); if(!a || (a.data.srikandi&&a.data.srikandi.pdf&&a.data.srikandi.pdf.at>=u.at)) return;
+    ganti(a,d=>{ d.srikandi=Object.assign({tte:true},d.srikandi,{pdf:{file:u.file,at:u.at}}); }); });
+  if(!ubah) return;
+  store.set(LS_ARSIP,arsip);
+  if(cur){ $("f-nomor").value=doc.nomor||""; renderAlur(); renderSk(); render(); segarkanOtomatis(); }
+  renderArsip();
+  if(baru.length) toast(baru.length===1 ? "✓ SRIKANDI: “"+oneLine(baru[0].data.hal).slice(0,60)+"” sudah ber-TTE" : "✓ SRIKANDI: "+baru.length+" surat sudah ber-TTE");
+}
+// Teks kabar untuk arsip dan formulir
+function kabarSk(d){
+  const s=d.srikandi; if(!s) return null;
+  const tautan=/^https:\/\/([a-z0-9-]+\.)*srikandi\.arsip\.go\.id\//i.test(s.url||"")?' · <a href="'+esc(s.url)+'" target="_blank" rel="noopener">Buka di SRIKANDI</a>':"";
+  if(s.pdf) return {ok:true,html:"✓ PDF ber-TTE tersimpan"+(s.pdf.file?" · "+esc(s.pdf.file):"")+tautan};
+  if(s.tte) return {ok:true,html:"✓ Sudah ber-TTE di SRIKANDI, siap diunduh"+tautan};
+  return {ok:false,html:"⏳ Di SRIKANDI"+(s.status?": "+esc(s.status):"")+tautan};
+}
+function renderSk(){ const k=kabarSk(doc), b=$("skBanner"); b.hidden=!k; if(k){ b.innerHTML=k.html; b.className="sk-banner"+(k.ok?"":" proses"); } }
+addEventListener("message",e=>{
+  if(e.source!==window || !e.data || !e.data.__dariEkstensiSrikandi) return;
+  ekstensiSk=e.data.versi||"?"; $("skAktif").hidden=false; $("skPasang").hidden=true;
+  terapkanSrikandi(Array.isArray(e.data.naskah)?e.data.naskah:[], Array.isArray(e.data.unduhan)?e.data.unduhan:[]);
+});
+postMessage({__mintaKabarSrikandi:1},"*");
 
 /* ---------- Tab ---------- */
 function showTab(t){
