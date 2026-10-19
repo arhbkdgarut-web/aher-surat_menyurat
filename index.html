@@ -168,6 +168,8 @@ table.info.surat td.k{width:.985in} /* sama dengan nota dinas, agar "lurus setel
 .isi.s-surat{margin-left:1.5in;margin-top:18pt}
 table.rinci{border-collapse:collapse;margin:0 0 var(--jarak,0pt);line-height:var(--spasi,1.5);text-align:left} /* jarak sesudah rincian = jarak antar paragraf */
 table.rinci td{padding:0;vertical-align:top}
+table.rinci.rsub{margin:0;line-height:inherit}
+.isi .lv p{text-indent:0}
 .ttd .pangkat{margin-top:1pt}
 .tte{box-sizing:border-box;margin-right:1pt;display:grid;grid-template-columns:1.24in 1fr;border:.75pt solid #000;width:3.375in;height:1.25in;margin-left:auto;font-size:7pt;line-height:1.2;text-align:center;break-inside:avoid;margin-top:18pt}
 .tte .qr{border-right:.75pt solid #000;display:flex;align-items:center;justify-content:center}
@@ -176,6 +178,8 @@ table.rinci td{padding:0;vertical-align:top}
 .tte .tx .ket{display:flex;align-items:center;justify-content:center;gap:4pt}
 .tte .tx .ket img{width:.17in;height:.17in}
 .tte .tx .nama{font-weight:bold;text-decoration:underline}
+.tte-atas{width:max-content;min-width:3.375in;margin:18pt 1pt 2pt auto;text-align:center;white-space:nowrap;line-height:1.15;break-after:avoid} /* di tengah kotak, atau rata kanan bila lebih panjang */
+.tte.ada-atas{margin-top:0}
 .tte-foot{font-size:8pt;text-align:center;margin-top:36pt;line-height:1.3}
 .keep{break-inside:avoid}
 .paper.f-tnr{font-family:"Times New Roman",Tinos,"Liberation Serif",serif}
@@ -230,7 +234,7 @@ table.tbl th{background:#f2f2f2}
 <header class="top">
   <div class="brand">
     <img id="brandLogo" alt="">
-    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 10.00</small></div>
+    <div><b>Surat Menyurat</b><small id="brandSub">Badan Kepegawaian dan Diklat</small><small class="ver" id="verLabel">Versi 19 Okt 2026 · 14.00</small></div>
   </div>
   <div class="actions">
     <button class="btn" id="btnNew" type="button">Surat baru</button>
@@ -286,6 +290,7 @@ table.tbl th{background:#f2f2f2}
         <p class="hint">Boleh menempel <b>seluruh surat dari Word atau PDF</b> (Ctrl+A, Ctrl+C, lalu Ctrl+V di sini). Kepala surat, tanda tangan, tembusan, dan lampiran otomatis dipindah ke kolomnya.</p>
         <p class="hint">Satu baris = satu paragraf. Baris yang diawali <code>1.</code> <code>2.</code> atau <code>a.</code> <code>b.</code> otomatis menjadi butir bernomor. Baris pendek tanpa titik di akhir menjadi sub judul tebal (awali dengan <code>#</code> bila perlu). Kolom tabel dipisah tanda <code>|</code>. Tebalkan kata dengan <code>**kata**</code>.</p>
         <p class="hint">Rincian ditulis <code>Hari/Tanggal : 28 September 2026</code>; nama harinya diisi otomatis. Tekan Enter di akhir butir untuk nomor berikutnya.</p>
+        <p class="hint"><b>Menjorok ke dalam:</b> tekan <kbd>Tab</kbd> di awal baris (bisa beberapa baris sekaligus), <kbd>Shift</kbd>+<kbd>Tab</kbd> untuk mengembalikan. Baris menjorok di bawah rincian menjadi lanjutan atau sub-nya, misalnya:<br><code>Waktu : 1. Hari Senin s.d Kamis</code><br><code>&emsp;&emsp;Sesi I : 09.00 s.d 10.30 WIB</code> (2× Tab)<br><code>&emsp;2. Hari Jumat</code> (1× Tab)<br><code>Tempat : Aula Kodim 0611 Garut</code><br><code>&emsp;Jln. Veteran No.1</code> (1× Tab)</p>
         </details>
       </fieldset>
       <hr class="sep">
@@ -305,6 +310,8 @@ table.tbl th{background:#f2f2f2}
             <input type="text" id="f-nip" inputmode="numeric"></label>
         </div>
         <label class="check"><input type="checkbox" id="f-tte"> Tanda tangan elektronik (TTE)</label>
+        <label id="ttdAtasBox">Baris di atas kotak TTE <small>(boleh kosong)</small>
+          <input type="text" id="f-ttdAtas" placeholder="misalnya: KEPALA BADAN KEPEGAWAIAN DAN DIKLAT,"></label>
         <label for="f-tembusan">Tembusan</label>
         <div class="picker" data-for="tembusan">
           <textarea id="f-tembusan" rows="2" autocomplete="off" placeholder="Klik untuk memilih dari daftar, atau ketik: bupati, wabup, sekda…"></textarea>
@@ -477,6 +484,7 @@ const SAMPLE = {
 };
 const SAMPLE3 = {"jenis": "surat", "tempatSurat": "Garut", "diTempat": "Garut", "tte": true, "kepada": "Kepala Kantor Kementerian Agama Kabupaten Garut", "kepadaNum": false, "dari": "", "tanggal": "2026-09-22", "nomor": "800.1.2.5/7839/BKD", "sifat": "Penting", "lampiran": "", "hal": "Permohonan Petugas Rohaniawan", "isi": "Disampaikan dengan hormat, berdasarkan Pasal 33 Peraturan Pemerintah Nomor 11 Tahun 2017 tentang Manajemen Pegawai Negeri Sipil sebagaimana diubah dengan Peraturan Pemerintah Nomor 17 Tahun 2020 tentang Perubahan Atas Peraturan Pemerintah Nomor 11 Tahun 2017 tentang Manajemen Pegawai Negeri Sipil, dan ketentuan angka Romawi VII huruf A Peraturan Badan Kepegawaian Negara Nomor 14 Tahun 2018 tentang Petunjuk Teknis Pengadaan Pegawai Negeri Sipil, bahwa Calon Pegawai Negeri Sipil diangkat menjadi Pegawai Negeri Sipil oleh Pejabat Pembina Kepegawaian setelah memenuhi masa percobaan selama 1 (satu) tahun, lulus pendidikan dan pelatihan terintegrasi serta sehat jasmani dan rohani.\nSehubungan dengan hal tersebut, kami bermaksud melaksanakan Pengangkatan dan Pengambilan Sumpah Jabatan Pegawai Negeri Sipil di Lingkungan Pemerintah Kabupaten Garut yang akan dilaksanakan pada :\nHari/Tanggal : Senin, 28 September 2026\nWaktu : Jam 7.00 WIB s.d. Selesai\nTempat : Lapangan Apel Sekretariat Daerah Kabupaten Garut\nSelanjutnya, kami mohon Bapak Kepala Kantor Kementerian Agama Kabupaten Garut berkenan menugaskan 2 (dua) orang Petugas Rohaniawan yang beragama Islam dan Katolik, untuk pelaksanaan Pelantikan dan Pengambilan Sumpah Jabatan CPNS menjadi PNS di Lingkungan Pemerintah Kabupaten Garut.\nDemikian kami sampaikan. Atas perhatian dan perkenannya diucapkan terima kasih.", "lampText": "", "jabatan": "KEPALA\nBADAN KEPEGAWAIAN DAN DIKLAT\nKABUPATEN GARUT,", "nama": "[NAMA KEPALA BADAN]", "pangkat": "Pembina Tingkat I, IV/b", "nip": "", "tembusan": "Yth. Bupati Garut (sebagai laporan);\nYth. Wakil Bupati Garut (sebagai laporan); dan\nYth. Sekretaris Daerah Kabupaten Garut (sebagai laporan).", "indent": true};
 const SAMPLE2 = {"labelKepada": "Yth.", "nomorPos": "judul", "isiPos": "margin", "huruf": "tnr", "indent": false, "kepada": "Kepala Badan Kepegawaian dan Diklat Kabupaten Garut", "kepadaNum": false, "dari": "Kepala Bidang Pengadaan, Pemberhentian dan Informasi", "tanggal": "2026-10-16", "nomor": "[diisi sesuai tata naskah dinas]", "sifat": "Biasa", "lampiran": "1 (satu) berkas", "hal": "Pokok Pengaturan Katalog Elektronik dan Persiapan Konsolidasi Pengadaan Tahun Anggaran 2027", "pembuka": "Sehubungan dengan Surat Sekretariat Daerah Kabupaten Garut Nomor 000.3/0458.BPBJ/X/2026 tanggal 13 Oktober 2026 perihal Undangan Sosialisasi, bersama ini kami sampaikan pokok pengaturan Katalog Elektronik dan konsolidasi pengadaan sebagai bahan arahan dalam penyiapan kebutuhan Tahun Anggaran 2027.", "points": [{"k": "judul", "t": "Dasar dan pokok pengaturan"}, "Peraturan Lembaga Kebijakan Pengadaan Barang/Jasa Pemerintah Nomor 2 Tahun 2026 tentang Katalog Elektronik dalam Pengadaan Barang/Jasa Pemerintah mengatur pengelolaan katalog, pencantuman produk, Toko Daring, pembelian secara elektronik atau E-purchasing, serta pengawasan. E-purchasing wajib dilakukan apabila barang/jasa yang dibutuhkan tersedia dalam katalog, dengan pengecualian berdasarkan penilaian Pejabat Pembuat Komitmen (PPK) sesuai ketentuan.", "Keputusan Kepala LKPP Nomor 121 Tahun 2023 tentang Pelaksanaan Konsolidasi Pengadaan Barang/Jasa Pemerintah untuk Katalog Elektronik mengatur penggabungan kebutuhan barang/jasa sejenis. Pelaksanaannya mencakup analisis kebutuhan dan pasar, persiapan dan pemilihan penyedia, kontrak payung, serta pencantuman hasil konsolidasi dalam katalog.", "Surat undangan tersebut memuat rencana konsolidasi Kabupaten Garut Tahun Anggaran 2027 untuk kertas HVS, jasa keamanan, jasa kebersihan, dan jasa pengolahan sampah medis. Setiap unit terkait perlu menyiapkan kebutuhan yang terukur sesuai tugas dan karakteristik layanannya.", {"k": "judul", "t": "Hal yang perlu menjadi perhatian"}, {"k": "paragraf", "t": "Penggunaan Katalog Elektronik tetap memerlukan pemeriksaan kesesuaian kebutuhan, kewajaran harga, kemampuan penyedia, dan ketepatan metode pembelian. Peraturan LKPP Nomor 2 Tahun 2026 mewajibkan PPK menetapkan Harga Perkiraan Sendiri (HPS) untuk nilai di atas Rp100.000.000,00 dan menyiapkan Referensi Harga untuk nilai sampai dengan Rp100.000.000,00. Pengecualian berlaku bagi pembelian langsung pada kategori atau koleksi produk yang menerapkan harga tetap."}, {"k": "paragraf", "t": "Metode E-purchasing meliputi pembelian langsung, negosiasi harga, dan mini kompetisi. Metode serta pelaksananya ditentukan sesuai kategori produk, nilai pengadaan, dan kewenangan pejabat. Sifat harga hasil konsolidasi juga harus diperhatikan karena dapat berupa harga yang dapat dinegosiasikan, harga tetap, atau harga khusus bagi pemerintah. Penjelasan rinci tercantum dalam lampiran."}, {"k": "judul", "t": "Usulan tindak lanjut"}, {"k": "paragraf", "t": "Untuk mendukung penerapan ketentuan tersebut, kami mohon arahan dan persetujuan atas langkah berikut:"}, "Menugaskan PPK, Pejabat Pengadaan, dan pengelola kegiatan untuk menelaah prosedur E-purchasing, termasuk HPS atau Referensi Harga, pemilihan metode, penandatanganan Surat/Bukti Pesanan, serta jaminan pelaksanaan apabila dipersyaratkan.", "Menginventarisasi kebutuhan Tahun Anggaran 2027 atas empat komoditas yang direncanakan untuk dikonsolidasikan. Data memuat jenis kebutuhan, spesifikasi atau ruang lingkup layanan, volume dan satuan, lokasi, waktu pemanfaatan, perkiraan anggaran, serta kontrak yang masih berjalan.", "Menunjuk penanggung jawab pengumpulan data dan berkoordinasi dengan Bagian Pengadaan Barang dan Jasa Sekretariat Daerah Kabupaten Garut mengenai format, jadwal, dan mekanisme penyampaian data sesuai arahan resmi.", "Menyelaraskan masa berlaku kontrak, jadwal pemilihan, dan awal pelaksanaan untuk menjaga kesinambungan layanan. Khusus jasa pengolahan sampah medis, unit layanan kesehatan perlu menelaah ruang lingkup pekerjaan dan persyaratan penyedia sesuai karakteristik limbah serta ketentuan yang berlaku.", "Mendokumentasikan analisis pasar, pertimbangan metode, hasil negosiasi atau kompetisi, dan dasar pengecualian E-purchasing apabila digunakan. Evaluasi disarankan mencakup harga, mutu, ketepatan waktu, serta kesesuaian hasil dengan kebutuhan."], "penutup": "Demikian disampaikan sebagai bahan pertimbangan dan arahan lebih lanjut. Atas perhatian dan arahan Bapak/Ibu, kami ucapkan terima kasih.", "jabatan": "Kepala Bidang Pengadaan,\nPemberhentian dan Informasi,", "nama": "[NAMA PENANDATANGAN]", "nip": "", "tembusan": "", "lampOn": true, "lamp": [{"k": "bab", "t": "Pokok Peraturan LKPP Nomor 2 Tahun 2026"}, {"k": "judul", "t": "Ruang lingkup dan peran pemerintah daerah"}, {"k": "paragraf", "t": "Penyelenggaraan Katalog Elektronik mencakup pengelolaan, pencantuman barang/jasa, Toko Daring, E-purchasing, dan pengawasan. Pengelolaannya meliputi pusat katalog, katalog nasional, sektoral, lokal, dan pengelolaan oleh institusi lainnya. Untuk Katalog Elektronik Lokal, Pasal 8 menekankan pengusulan koleksi produk, kurasi koleksi, serta dukungan bagi pelaku usaha lokal untuk menayangkan produk. Pejabat pimpinan tinggi pratama yang memimpin atau membawahkan Unit Kerja Pengadaan Barang/Jasa (UKPBJ) berwenang mengusulkan koleksi dan menetapkan atau membentuk kurator koleksi produk."}, {"k": "judul", "t": "Kewajiban pembelian melalui katalog dan dasar pengecualian"}, {"k": "paragraf", "t": "Pasal 12 mengatur penggunaan E-purchasing untuk barang, pekerjaan konstruksi, jasa lainnya, dan jasa konsultansi. Kementerian/lembaga/pemerintah daerah wajib menggunakannya apabila kebutuhan tersedia dalam katalog. Pengecualian diperbolehkan apabila kebutuhan tidak terpenuhi dari aspek volume, spesifikasi teknis, waktu, lokasi, dan/atau layanan; atau metode lain dinilai lebih efisien dan/atau efektif."}, {"k": "paragraf", "t": "Pengecualian didasarkan pada penilaian PPK. Dalam melakukan penilaian, PPK melakukan analisis pasar dan/atau dibantu pihak yang berkompeten. Analisis pasar paling sedikit mengidentifikasi ketersediaan barang/jasa dan penyedia, kecukupan volume dan spesifikasi, kesanggupan penyedia dari aspek waktu/lokasi/layanan, kesesuaian kategori, serta perbandingan harga dengan barang/jasa sejenis di luar katalog. Sebagai pengendalian administrasi, hasil penilaian dan bukti pendukungnya disarankan dicatat dalam dokumen pengadaan."}, {"k": "judul", "t": "HPS dan Referensi Harga"}, {"k": "paragraf", "t": "Pasal 13 mewajibkan PPK menetapkan HPS untuk nilai E-purchasing di atas Rp100.000.000,00. Untuk nilai sampai dengan Rp100.000.000,00, PPK menyiapkan Referensi Harga sebagai pembanding kewajaran harga satuan produk. Ketentuan tersebut dikecualikan bagi pembelian langsung pada kategori atau koleksi produk yang menerapkan harga tetap. Dengan demikian, kebutuhan HPS atau Referensi Harga ditelaah menurut nilai dan sifat harga produk yang dibeli."}, {"k": "judul", "t": "Toko Daring dan produk yang ditayangkan"}, {"k": "paragraf", "t": "Toko Daring merupakan bagian sistem katalog melalui marketplace mitra. Pasal 11 membatasi nilai transaksinya sampai dengan Rp50.000.000,00. Produk yang ditayangkan merupakan produk dalam negeri serta produk usaha mikro, usaha kecil, dan koperasi. Ketentuan mengenai produk usaha mikro, usaha kecil, dan koperasi dapat dikecualikan untuk kategori tertentu berupa produk dalam negeri yang tidak dapat disediakan oleh kelompok usaha tersebut."}, {"k": "bab", "t": "Metode pembelian dan pengendalian transaksi"}, {"k": "paragraf", "t": "Ringkasan Pasal 14 sampai dengan Pasal 17 berikut menggunakan ketentuan umum yang relevan untuk Kabupaten Garut."}, {"k": "tabel", "t": "Metode dan kondisi | Batas nilai | Pelaksana\nPembelian langsung pada kategori yang ditetapkan dalam dokumen penelaahan, atau kategori tertentu pada Toko Daring | Sampai dengan Rp50 juta | Pejabat Pengadaan\nPembelian langsung pada kategori atau koleksi dengan harga tetap | Sampai dengan Rp200 juta / di atas Rp200 juta | Pejabat Pengadaan / PPK\nNegosiasi harga produk katalog | Sampai dengan Rp200 juta / di atas Rp200 juta | Pejabat Pengadaan / PPK atau Pokja Pemilihan sesuai syarat di bawah\nMini kompetisi terhadap sedikitnya dua penyedia dengan produk atau spesifikasi sama sesuai kebutuhan | Sampai dengan Rp200 juta / di atas Rp200 juta | Pejabat Pengadaan / Pokja Pemilihan"}, {"k": "paragraf", "t": "Pada Toko Daring, negosiasi dilakukan jika marketplace mitra menyediakan fiturnya, untuk transaksi paling banyak Rp50 juta, oleh Pejabat Pengadaan. Pembelian langsung pada kategori tertentu di Toko Daring berkaitan dengan kebutuhan rutin dan berulang dan/atau barang/jasa yang standar harganya telah ditetapkan pemerintah."}, {"k": "judul", "t": "Kewenangan dan pemilihan metode"}, {"k": "paragraf", "t": "Pasal 16 ayat (2) membatasi negosiasi oleh PPK untuk hasil konsolidasi yang dapat dinegosiasikan, praktik bisnis mapan yang tidak dikompetisikan sesuai ketentuan, atau swakelola tipe I, II, dan III melalui E-purchasing. Pembatasan kriteria tersebut dikecualikan bagi Pejabat Pengadaan dan Kelompok Kerja (Pokja) Pemilihan. Menurut Pasal 17 ayat (4), mini kompetisi di atas Rp200 juta dapat dilaksanakan PPK jika belum dapat dilaksanakan oleh Pokja Pemilihan. Apabila dilaksanakan Pokja Pemilihan, PPK menyampaikan permintaan kepada UKPBJ."}, {"k": "paragraf", "t": "Pemilihan metode mempertimbangkan karakteristik pasar, waktu pemanfaatan, kompetensi pelaksana, dan/atau penilaian lain pejabat berwenang. Pengelola katalog dapat menetapkan metode untuk kategori tertentu sehingga dokumen kategori produk perlu diperiksa."}, {"k": "judul", "t": "Kontrak jaminan dan pengawasan"}, {"k": "paragraf", "t": "Pasal 19 mengatur penandatanganan Surat/Bukti Pesanan melalui sistem katalog oleh PPK dan penyedia secara elektronik. Pasal 20 memberlakukan jaminan pelaksanaan untuk barang, pekerjaan konstruksi, dan jasa lainnya dengan nilai kontrak di atas Rp200 juta. Jaminan tidak diperlukan untuk jasa lainnya yang aset penyedianya dikuasai pengguna. Pasal 21 mengatur pengawasan penayangan, penanganan laporan produk, dan sanksi atas pelanggaran sesuai ketentuan."}, {"k": "judul", "t": "Pemberlakuan dan peralihan"}, {"k": "paragraf", "t": "Peraturan ini berlaku sejak diundangkan dan mencabut Peraturan LKPP Nomor 9 Tahun 2021. Pasal 22 memberi waktu penyesuaian sistem paling lama satu tahun sejak pengundangan. Pasal 23 mempertahankan dokumen penelaahan/pengumuman sepanjang tidak bertentangan dan/atau belum diganti, serta produk yang telah tayang; mengatur kelanjutan E-purchasing sebelum aturan baru berlaku menurut aturan lama; serta mempertahankan Surat/Bukti Pesanan lama sampai kontrak berakhir. Masa penyesuaian sistem perlu dibedakan dari waktu berlakunya peraturan."}, {"k": "bab", "t": "Pokok Keputusan Kepala LKPP Nomor 121 Tahun 2023"}, {"k": "judul", "t": "Penggabungan kebutuhan dan kewenangan pelaksana"}, {"k": "paragraf", "t": "Diktum KEDUA menetapkan konsolidasi sebagai strategi optimalisasi pengadaan dengan menggabungkan kebutuhan barang/jasa sejenis pada kementerian/lembaga/pemerintah daerah untuk katalog. Penggabungan ini dapat menjadi dasar memperkuat posisi pembelian pemerintah, sepanjang spesifikasi, volume, dan kondisi layanan disusun sesuai kebutuhan."}, {"k": "paragraf", "t": "Menurut Diktum KETIGA dan KEEMPAT, konsolidasi dilaksanakan oleh menteri/kepala lembaga yang membidangi atau membina sektor terkait, gubernur/wali kota/bupati, atau Deputi Bidang Transformasi Pengadaan Digital LKPP. Pimpinan kementerian/lembaga/kepala daerah dapat memberi mandat sebagian atau seluruhnya kepada pejabat pimpinan tinggi yang membawahi UKPBJ. Karena itu, koordinasi teknis perangkat daerah perlu mengikuti kewenangan atau mandat yang ditetapkan."}, {"k": "judul", "t": "Tahapan pelaksanaan konsolidasi"}, {"k": "paragraf", "t": "Diktum KETUJUH dan KEDELAPAN memuat rangkaian kegiatan yang perlu dipersiapkan dan dilaksanakan, antara lain:"}, "Penetapan tata cara penyelenggaraan dan tim pelaksana sesuai jenis barang/jasa yang dikonsolidasikan.", "Analisis kebutuhan dan analisis pasar untuk mengenali kebutuhan gabungan serta kondisi penyedia dan produk.", "Persiapan spesifikasi, penetapan HPS jika diperlukan, dan rancangan kontrak payung.", "Penetapan cara pemilihan melalui tender dan/atau negosiasi, penyusunan dokumen pemilihan, serta pemilihan penyedia.", "Penandatanganan kontrak payung dan pencantuman barang/jasa dalam katalog, disertai pemantauan, evaluasi, dan pelaporan hasil pelaksanaan.", {"k": "paragraf", "t": "Ketentuan HPS jika diperlukan pada tahap persiapan konsolidasi perlu dibedakan dari kewajiban HPS atau Referensi Harga pada tahap E-purchasing menurut Pasal 13 Peraturan LKPP Nomor 2 Tahun 2026."}, {"k": "judul", "t": "Pemenang dan sifat harga hasil konsolidasi"}, {"k": "paragraf", "t": "Diktum KESEPULUH memperbolehkan satu atau lebih pemenang. Harga hasil konsolidasi dapat berupa satu harga yang sama untuk seluruh pemenang yang dapat dinegosiasikan saat E-purchasing; satu harga yang sama yang tidak dapat dinegosiasikan atau harga tetap; atau harga khusus pemerintah dari masing-masing pemenang. Pembelian harus memperhatikan hasil konsolidasi dan kontrak payung yang bersangkutan. Keputusan ini mencabut Keputusan Kepala LKPP Nomor 220 Tahun 2022."}, {"k": "judul", "t": "Keterkaitan dengan peraturan katalog terbaru"}, {"k": "paragraf", "t": "Pasal 10 ayat (2) Peraturan LKPP Nomor 2 Tahun 2026 memungkinkan pencantuman barang/jasa hasil konsolidasi. Hubungan kedua aturan juga tampak pada pembelian langsung berharga tetap dan negosiasi produk hasil konsolidasi. Tata cara konsolidasi karena itu perlu diselaraskan dengan ketentuan katalog dan E-purchasing yang berlaku."}, {"k": "bab", "t": "Penyiapan kebutuhan Kabupaten Garut Tahun Anggaran 2027"}, {"k": "paragraf", "t": "Surat undangan memuat rencana konsolidasi empat komoditas. Sebagai usulan persiapan internal, setiap unit terkait dapat menyiapkan rincian berikut sesuai kebutuhannya:"}, {"k": "huruf", "t": "Kertas HVS: ukuran, gramatur, satuan kemasan, perkiraan jumlah kebutuhan, jadwal penggunaan, dan lokasi pengiriman."}, {"k": "huruf", "t": "Jasa keamanan: lokasi dan titik penjagaan, jumlah personel, pola waktu tugas, periode layanan, perlengkapan, serta standar layanan yang diperlukan."}, {"k": "huruf", "t": "Jasa kebersihan: luas dan karakteristik area, frekuensi layanan, personel dan peralatan, bahan habis pakai, serta hasil layanan yang dipersyaratkan."}, {"k": "huruf", "t": "Jasa pengolahan sampah medis: jenis dan perkiraan volume limbah, lokasi, frekuensi pengambilan, cakupan pengangkutan/pengolahan, serta persyaratan penyedia dan bukti layanan sesuai ketentuan yang berlaku."}, {"k": "paragraf", "t": "Setiap kebutuhan disertai perkiraan anggaran, waktu mulai pemanfaatan, masa akhir kontrak yang sedang berjalan, dan penanggung jawab unit. Penyelarasan jadwal diperlukan agar layanan berkelanjutan tetap terpenuhi. Format serta tenggat penyampaian mengikuti pemberitahuan resmi Bagian Pengadaan Barang dan Jasa. Rincian data di atas merupakan usulan penyiapan internal, bukan persyaratan tambahan yang ditetapkan oleh kedua regulasi."}, {"k": "judul", "t": "Rujukan penyusunan"}, "Peraturan Lembaga Kebijakan Pengadaan Barang/Jasa Pemerintah Nomor 2 Tahun 2026 tentang Katalog Elektronik dalam Pengadaan Barang/Jasa Pemerintah. Rujukan utama: Pasal 3, Pasal 8, Pasal 10 sampai dengan Pasal 17, dan Pasal 19 sampai dengan Pasal 25.", {"k": "paragraf", "t": "Naskah resmi Peraturan LKPP Nomor 2 Tahun 2026 pada JDIH LKPP"}, "Keputusan Kepala LKPP Nomor 121 Tahun 2023 tentang Pelaksanaan Konsolidasi Pengadaan Barang/Jasa Pemerintah untuk Katalog Elektronik. Rujukan utama: Diktum KEDUA sampai dengan KEEMPAT, KETUJUH, KEDELAPAN, KESEPULUH, dan KEDUABELAS.", {"k": "paragraf", "t": "Naskah resmi Keputusan Kepala LKPP Nomor 121 Tahun 2023 pada JDIH LKPP"}, "Surat Sekretariat Daerah Kabupaten Garut Nomor 000.3/0458.BPBJ/X/2026 tanggal 13 Oktober 2026 perihal Undangan Sosialisasi. Surat memuat rencana kegiatan daring pada Kamis, 15 Oktober 2026 pukul 08.30 WIB dan rencana konsolidasi empat komoditas Tahun Anggaran 2027."]};
+const SAMPLE4 = {"jenis": "surat", "tte": true, "kepada": "Bapak/Ibu Kepala Perangkat Daerah", "diTempat": "Garut", "tanggal": "2026-09-28", "nomor": "800.1.13.2/14513/BKD", "sifat": "Segera", "lampiran": "-", "hal": "Undangan Penandatanganan Dokumen Perpanjangan\nPerjanjian Kerja Pegawai Pemerintah Dengan Perjanjian Kerja\nParuh Waktu di Lingkungan Pemerintah Kabupaten Garut Tahun 2026", "isi": "Disampaikan dengan hormat, berdasarkan Pasal 14 dan Pasal 17 ayat (4) Peraturan Menteri Pendayagunaan Aparatur Negara dan Reformasi Birokrasi Nomor 9 Tahun 2026 tentang Pegawai Pemerintah Dengan Perjanjian Kerja Paruh Waktu dan Diktum KETIGA BELAS dan Diktum KEDELAPAN BELAS Keputusan Menteri Pendayagunaan Aparatur Negara dan Reformasi Birokrasi Nomor 16 Tahun 2025 tentang Pegawai Pemerintah Dengan Perjanjian Kerja Paruh Waktu, bahwa masa perjanjian kerja Pegawai Pemerintah Dengan Perjanjian Kerja (PPPK) Paruh Waktu ditetapkan setiap 1 (satu) tahun yang dimuat dalam perjanjian kerja sampai dengan diangkat menjadi PPPK, serta hasil evaluasi kinerja digunakan sebagai pertimbangan perpanjangan perjanjian kerja atau pengangkatan menjadi PPPK.\nSehubungan dengan hal tersebut, kami mohon Bapak/Ibu Kepala Perangkat Daerah untuk menghadirkan para PPPK Paruh Waktu dalam rangka Penandatanganan Dokumen Perpanjangan Perjanjian Kerja Pegawai Pemerintah Dengan Perjanjian Kerja Paruh Waktu di Lingkungan Pemerintah Kabupaten Garut Tahun 2026, yang akan dilaksanakan pada:\nHari/Tanggal : Kamis/1 Oktober 2026 s.d Kamis/8 Oktober 2026\nWaktu : 1. Hari Senin s.d Kamis\n\t\tSesi I : 09.00 s.d 10.30 WIB\n\t\tSesi II : 10.30 s.d 12.00 WIB\n\t\tSesi III : 13.30 s.d 15.00 WIB\n\t2. Hari Jumat\n\t\tSesi I : 08.30 s.d 10.00 WIB\n\t\tSesi II : 10.00 s.d 11.30 WIB\n\t\tSesi III : 13.30 s.d 15.00 WIB\nTempat : Aula Kodim 0611 Garut\n\tJln. Veteran No.1, Kel. Pakuwon, Kec. Garut Kota\nPakaian : Pakaian yang berlaku pada hari tersebut\nCatatan : Wajib membawa 2 (dua) buah Meterai Rp10.000\n\t(sepuluh ribu rupiah)\nSelanjutnya, kami sampaikan pula untuk Jadwal Penandatanganan Dokumen Perpanjangan Perjanjian Kerja Pegawai Pemerintah Dengan Perjanjian Kerja Paruh Waktu sebagaimana terlampir pada tautan: bit.ly/jadwal_penandatanganan_perpanjangan_perkin_pppk_pw_2026.\nDemikian kami sampaikan, atas perhatian dan kerjasamanya diucapkan terima kasih.", "ttdAtas": "KEPALA BADAN KEPEGAWAIAN DAN DIKLAT,", "jabatan": "KEPALA\nBADAN KEPEGAWAIAN DAN DIKLAT\nKABUPATEN GARUT,", "nama": "[NAMA KEPALA BADAN]", "pangkat": "Pembina Tingkat I, IV/b", "nip": "", "tembusan": "Yth. Bupati Garut;\nYth. Wakil Bupati Garut; dan\nYth. Sekretaris Daerah Kabupaten Garut."};
 // Format bawaan bila nota belum mengaturnya
 const FMT = {nomorPos:"tabel", isiPos:"titikdua", huruf:"arial", spasi:"1.5", jarakPar:"0"};
 // Spasi untuk Word: baris dalam 1/240, jarak paragraf dalam twip
@@ -511,6 +519,12 @@ const LS_SEED3="notadinas.contoh3.v1";
 if(!store.get(LS_SEED3,false)){
   arsip.push({id:uid(),created:Date.now(),updated:Date.now(),data:structuredClone(SAMPLE3)});
   store.set(LS_ARSIP,arsip); store.set(LS_SEED3,true);
+}
+// Contoh surat undangan dengan rincian menjorok (Waktu → Sesi) masuk arsip satu kali
+const LS_SEED4="notadinas.contoh4.v1";
+if(!store.get(LS_SEED4,false)){
+  arsip.push({id:uid(),created:Date.now(),updated:Date.now(),data:structuredClone(SAMPLE4)});
+  store.set(LS_ARSIP,arsip); store.set(LS_SEED4,true);
 }
 let kop = Object.assign({},DEFAULT_KOP,store.get(LS_KOP,{}));
 if(!kop.lm4){kop.lmt=3;kop.lmb=3;kop.lm2=kop.lm3=kop.lm4=true;store.set(LS_KOP,kop);} // semua margin atas & bawah 3 cm kecuali kop
@@ -553,14 +567,14 @@ function runs(text){
 const runsHtml = text => runs(text).map(r=>r.b?"<b>"+keepHtml(r.t)+"</b>":r.i?"<i>"+keepHtml(r.t)+"</i>":keepHtml(r.t)).join("");
 
 /* ---------- Formulir ---------- */
-const FIELDS=["kepada","dari","tanggal","nomor","sifat","lampiran","hal","isi","lampText","lampJudul","tempatSurat","diTempat","pangkat","jabatan","nama","nip","tembusan"];
+const FIELDS=["kepada","dari","tanggal","nomor","sifat","lampiran","hal","isi","lampText","lampJudul","tempatSurat","diTempat","pangkat","jabatan","nama","nip","tembusan","ttdAtas"];
 function fillForm(){
   migrate(doc);
   if(isSurat() && /^\s*(\d+[.)]\s*)?Yth\./im.test(doc.kepada||"")) doc.kepada=lines(doc.kepada).map(tanpaYth).join("\n"); // surat dinas tanpa Yth. di tiap baris
   FIELDS.forEach(f=>{$("f-"+f).value=doc[f]||""});
   $("f-indent").checked=doc.indent!==false;
   $("f-jenis").value=doc.jenis||"nota"; $("pane-edit").dataset.jenis=doc.jenis||"nota";
-  $("f-tte").checked=!!doc.tte;
+  $("f-tte").checked=!!doc.tte; $("ttdAtasBox").hidden=!doc.tte;
   ["f-kepada","f-tembusan","f-jabatan"].forEach(id=>fitRows($(id)));
   Object.keys(FMT).forEach(k=>{ const el=$("f-"+k); if(!el) return; el.value=doc[k]||"";
     const o=el.querySelector('option[value="'+fmtAuto(k)+'"]'); el.options[0].textContent="Otomatis ("+(o?o.textContent:fmtAuto(k))+")"; });
@@ -588,7 +602,7 @@ function segarkanOtomatis(){
 }
 FIELDS.forEach(f=>$("f-"+f).addEventListener("input",e=>{doc[f]=e.target.value;changed()}));
 $("f-indent").addEventListener("change",e=>{doc.indent=e.target.checked;changed()});
-$("f-tte").addEventListener("change",e=>{doc.tte=e.target.checked;changed()});
+$("f-tte").addEventListener("change",e=>{doc.tte=e.target.checked;$("ttdAtasBox").hidden=!doc.tte;changed()});
 $("f-jenis").addEventListener("change",e=>{
   doc.jenis=e.target.value; $("pane-edit").dataset.jenis=doc.jenis;
   if(doc.jenis==="surat"){ doc.kepada=lines(doc.kepada).map(tanpaYth).join("\n"); }              // surat dinas: "Kepada Yth:" sudah di atas
@@ -633,20 +647,38 @@ function migrate(d){
 }
 // Isi satu kotak: jenis tiap baris dikenali dari bentuknya
 function textToBlocks(text,lamp){
-  const ls=String(text||"").replace(/\r/g,"").split("\n").map(s=>s.replace(/ /g," ").trim()).filter(Boolean);
+  // Tingkat menjorok dari awal baris: satu Tab (atau dua spasi) = satu tingkat
+  const raw=String(text||"").replace(/\r/g,"").split("\n").map(s=>s.replace(/ /g," ")).filter(s=>s.trim());
+  const lvOf=s=>{ const w=s.match(/^[\t ]*/)[0]; return Math.min(4,(w.match(/\t/g)||[]).length+Math.floor((w.match(/ /g)||[]).length/2)); };
+  const lvs=raw.map(lvOf), ls=raw.map(s=>s.trim());
   const DIG=/^(\d{1,2})([.)])\s*(.+)$/, LET=/^([a-z])([.)])\s+(.+)$/;
   const ROM=lamp?/^([IVX]{1,4})(?:[.)]\s*|\s+)(.+)$/:/^([IVX]{1,4})(?:[.)]|\t)\s*(.+)$/;
   const isItem=l=>DIG.test(l||"")||LET.test(l||"");
+  const RINCI=/^([A-Za-z][A-Za-z\/ .()-]{0,24}?)\s*\t*:\s*(\S.*)$/;
   const out=[]; let m;
   ls.forEach((l,i)=>{
+    const lv=lvs[i], last=out[out.length-1];
+    // Baris menjorok di bawah rincian = lanjutan/sub rincian (misalnya "Sesi I : 09.00" di bawah "Waktu")
+    if(lv>0 && last && last.k==="rincian" && lv>(last.lv||0)){ const row=last.rows[last.rows.length-1]; (row.sub=row.sub||[]).push({lv:lv-(last.lv||0),t:l}); return; }
+    const push=b=>{ if(lv) b.lv=lv; out.push(b); };
+    if(lv>0){ // baris menjorok: butir, rincian, atau paragraf, tetapi tidak menjadi sub judul
+      if((m=l.match(DIG))) return push({k:"butir",tag:m[1]+m[2],t:m[3]});
+      if((m=l.match(LET))) return push({k:"huruf",tag:m[1]+m[2],t:m[3]});
+      if((m=l.match(RINCI)) && m[1].trim().split(/\s+/).length<=3 && !/\.$/.test(m[1].trim())){
+        const row=[m[1].trim(),rapikanRincian(m[1],m[2].trim())];
+        if(last && last.k==="rincian" && last.lv===lv) last.rows.push(row); else push({k:"rincian",rows:[row],t:m[2]});
+        return;
+      }
+      return push({k:"paragraf",t:l});
+    }
     if((m=l.match(/^#\s*(.+)$/))) return out.push({k:"judul",t:m[1]});
     if((m=l.match(DIG))) return out.push({k:"butir",tag:m[1]+m[2],t:m[3]});
     if((m=l.match(LET))) return out.push({k:"huruf",tag:m[1]+m[2],t:m[3]});
     if((m=l.match(ROM)) && m[2].length<=100) return out.push({k:"bab",tag:m[1]+".",t:m[2]});
     // Rincian "Hari/Tanggal : Senin, …": label pendek, titik dua, isi
-    if((m=l.match(/^([A-Za-z][A-Za-z\/ .()-]{0,24}?)\s*\t*:\s*(\S.*)$/)) && m[1].trim().split(/\s+/).length<=3 && !/\.$/.test(m[1].trim())){
-      const last=out[out.length-1], row=[m[1].trim(),rapikanRincian(m[1],m[2].trim())];
-      if(last && last.k==="rincian") last.rows.push(row); else out.push({k:"rincian",rows:[row],t:m[2]});
+    if((m=l.match(RINCI)) && m[1].trim().split(/\s+/).length<=3 && !/\.$/.test(m[1].trim())){
+      const row=[m[1].trim(),rapikanRincian(m[1],m[2].trim())];
+      if(last && last.k==="rincian" && !last.lv) last.rows.push(row); else out.push({k:"rincian",rows:[row],t:m[2]});
       return;
     }
     if(/\t/.test(l) || /\s\|\s/.test(l)){
@@ -726,8 +758,23 @@ function toBlocks(ls,lamp){
   });
   return out;
 }
+// Teks PDF kehilangan menjorok: baris sesudah rincian utama (Waktu, Tempat, Catatan …) yang bukan rincian utama
+// dianggap lanjutan/sub-nya dan diberi Tab; sub butir "2. Hari Jumat" di bawah "Waktu : 1. …" juga
+const RINCI_UTAMA=/^(Hari\s*\/\s*Tanggal|Hari|Tanggal|Waktu|Pukul|Jam|Tempat|Lokasi|Alamat|Acara|Agenda|Kegiatan|Pakaian|Catatan|Keterangan|Peserta|Narasumber|Pemateri)\s*:\s*\S/i;
+function subRincian(ls){
+  let on=false, num=false;
+  return ls.map(l=>{
+    if(/^\t/.test(l)) return l;
+    if(RINCI_UTAMA.test(l)){ on=true; num=/:\s*\d{1,2}[.)]\s/.test(l); return l; }
+    if(!on) return l;
+    if(l.length>90 || /^(Selanjutnya|Demikian|Sehubungan|Berkenaan|Berdasarkan|Adapun|Atas|Mengingat|Dengan|Untuk|Kami|Bersama|Oleh)\b/i.test(l) || (/\.$/.test(l) && l.split(/\s+/).length>=6)){ on=false; return l; }
+    if(num && /^\d{1,2}[.)]\s/.test(l)) return "\t"+l;
+    if(!num && /^\d{1,2}[.)]\s/.test(l)){ on=false; return l; }
+    return (num?"\t\t":"\t")+l;
+  });
+}
 function parseNota(text){
-  let L=text.replace(/\r/g,"").split("\n").map(s=>s.replace(/ /g," ").replace(/ {2,}/g," ").trim()).filter(Boolean); // spasi ganda dari PDF dirapatkan
+  let L=text.replace(/\r/g,"").split("\n").map(s=>s.replace(/ /g," ")).map(s=>s.match(/^\t*/)[0]+s.replace(/ {2,}/g," ").trim()).filter(s=>s.trim()); // spasi ganda dari PDF dirapatkan; Tab di awal baris (menjorok) dipertahankan
   const out={};
   // Lampiran: semua setelah baris "LAMPIRAN ..." (tanpa titik dua)
   const li=L.findIndex(l=>/^LAMPIRAN\b/.test(l) && !l.includes(":"));
@@ -760,12 +807,12 @@ function parseNota(text){
   }
   // Teks dari PDF terpotong per baris: sambungkan baris yang belum selesai
   const joinWrapped = ls => ls.reduce((o,l)=>{ const p=o[o.length-1];
-    if(p!==undefined && !/[.:;!?]$/.test(p) && !/^[A-Za-z\/ ]{2,25}\s*:\s/.test(p) && (p.length>=45 || /^[a-z(]/.test(l)) && !/^(\d{1,2}|[a-z])[.)]\s/.test(l) && !/^[A-Za-z\/ ]{2,25}\s*:\s/.test(l)) o[o.length-1]=p+" "+l; else o.push(l); return o; },[]);
+    if(p!==undefined && !/^\t/.test(l) && !/^\t/.test(p) && !/[.:;!?]$/.test(p) && !/^[A-Za-z\/ ]{2,25}\s*:\s/.test(p) && (p.length>=45 || /^[a-z(]/.test(l)) && !/^(\d{1,2}|[a-z])[.)]\s/.test(l) && !/^[A-Za-z\/ ]{2,25}\s*:\s/.test(l)) o[o.length-1]=p+" "+l; else o.push(l); return o; },[]);
   // Baris tanda tangan elektronik dan catatan BSrE tidak masuk isi
-  const isTteLine = l => /ditandatangani secara elektronik|Balai Besar Sertifikasi|Badan Siber dan Sandi|^,$|Powered by/i.test(l);
+  const isTteLine = l => /ditandatangani secara elektronik|Balai Besar Sertifikasi|Badan Siber dan Sandi|^,$|Powered by/i.test(l) || /^-?\s*\d{1,3}\s*-?$/.test(l); // juga nomor halaman
   if(L.some(l=>/ditandatangani secara elektronik/i.test(l))) out.tte=true;
   L=L.slice(0,i).concat(L.slice(i).map(l=>l.replace(/\$\{[^}]*\}/g,"").trim()).filter(l=>l && !isTteLine(l)));
-  const body = joinWrapped(sawHead ? L.slice(i) : L.filter(l=>!/^NOTA DINAS$/i.test(l)));
+  const body = subRincian(joinWrapped(sawHead ? L.slice(i) : L.filter(l=>!/^NOTA DINAS$/i.test(l))));
   // Penutup = paragraf "Demikian…" terakhir; sesudahnya tanda tangan dan tembusan
   let di=-1; body.forEach((l,j)=>{if(/^Demikian\b/i.test(l)) di=j});
   let sign=[];
@@ -778,6 +825,9 @@ function parseNota(text){
     if(pi>=0){ out.pangkat=sign[pi]; sign.splice(pi,1); }
     const ni=sign.findIndex(l=>/^NIP\b/i.test(l));
     if(ni>=0){ out.nip=sign[ni].replace(/^NIP\.?\s*/i,""); sign=sign.slice(0,ni); }
+    // Baris jabatan di atas kotak TTE ("KEPALA BADAN …,") yang diulang di dalam kotak
+    const nrm=s=>String(s).toUpperCase().replace(/[^A-Z]/g,"");
+    if(out.tte && sign.length>=3 && nrm(sign[0]).length>=6 && nrm(sign.slice(1,-1).join(" ")).startsWith(nrm(sign[0]))){ out.ttdAtas=sign[0]; sign=sign.slice(1); }
     if(sign.length){ out.nama=sign[sign.length-1]; out.jabatan=sign.slice(0,-1).join("\n"); }
   }
   return out;
@@ -800,15 +850,33 @@ function rapikan(silent){
 $("btnParse").addEventListener("click",()=>rapikan(false));
 // Enter di akhir butir "3. …" → baris baru "4. " (huruf a→b, bab I→II). Enter pada butir kosong mengakhiri daftar.
 const romawiKeAngka = r => { const v={I:1,V:5,X:10}; let n=0; for(let i=0;i<r.length;i++){ const a=v[r[i]], b=v[r[i+1]]||0; n+= a<b?-a:a; } return n; };
+// Tab menjorokkan baris (bisa beberapa baris sekaligus), Shift+Tab mengembalikan
+["f-isi","f-lampText"].forEach(id=>$(id).addEventListener("keydown",e=>{
+  if(e.key!=="Tab"||e.ctrlKey||e.altKey||e.metaKey||e.isComposing) return;
+  const ta=e.target, v=ta.value, a=ta.selectionStart, z=ta.selectionEnd;
+  e.preventDefault();
+  const s=v.lastIndexOf("\n",a-1)+1, end=v.indexOf("\n",z>a&&v[z-1]==="\n"?z-1:z), eol=end<0?v.length:end;
+  const blok=v.slice(s,eol).split("\n");
+  const baru=blok.map(l=>e.shiftKey ? l.replace(/^(\t| {1,2})/,"") : (l.trim()?"\t"+l:l)).join("\n");
+  ta.setRangeText(baru,s,eol);
+  if(a===z){ const d=baru.length-(eol-s); ta.selectionStart=ta.selectionEnd=Math.max(s,a+d); } else { ta.selectionStart=s; ta.selectionEnd=s+baru.length; }
+  ta.dispatchEvent(new Event("input",{bubbles:true}));
+}));
 ["f-isi","f-lampText"].forEach(id=>$(id).addEventListener("keydown",e=>{
   if(e.key!=="Enter"||e.shiftKey||e.ctrlKey||e.altKey||e.isComposing) return;
   const ta=e.target, v=ta.value, pos=ta.selectionStart; if(pos!==ta.selectionEnd) return;
   const s=v.lastIndexOf("\n",pos-1)+1, end=v.indexOf("\n",pos), eol=end<0?v.length:end; if(pos!==eol) return;
-  const m=v.slice(s,eol).match(/^(\d{1,2}|[a-z]|[IVX]{1,4})([.)])(\s+)(.*)$/); if(!m) return;
-  e.preventDefault();
-  if(!m[4].trim()){ ta.setRangeText("",s,eol,"end"); }
-  else { const tag=m[1], next=/^\d/.test(tag)?String(+tag+1):/^[a-z]$/.test(tag)?String.fromCharCode(tag.charCodeAt(0)+1):ROMAN(romawiKeAngka(tag)+1);
-    ta.setRangeText("\n"+next+m[2]+" ",pos,pos,"end"); }
+  const baris=v.slice(s,eol), sp=baris.match(/^[\t ]*/)[0];
+  const m=baris.slice(sp.length).match(/^(\d{1,2}|[a-z]|[IVX]{1,4})([.)])(\s+)(.*)$/);
+  const r=!m && baris.slice(sp.length).match(/^[A-Za-z][^:\n]{0,28}:\s*(\d{1,2})([.)])\s+\S/); // "Waktu : 1. Senin" → baris berikut "	2. "
+  if(m){
+    e.preventDefault();
+    if(!m[4].trim()){ ta.setRangeText(sp.slice(1),s,eol,"end"); } // butir kosong: akhiri daftar / naik satu tingkat
+    else { const tag=m[1], next=/^\d/.test(tag)?String(+tag+1):/^[a-z]$/.test(tag)?String.fromCharCode(tag.charCodeAt(0)+1):ROMAN(romawiKeAngka(tag)+1);
+      ta.setRangeText("\n"+sp+next+m[2]+" ",pos,pos,"end"); }
+  } else if(r){ e.preventDefault(); ta.setRangeText("\n"+sp+"\t"+(+r[1]+1)+r[2]+" ",pos,pos,"end"); }
+  else if(sp){ e.preventDefault(); ta.setRangeText(baris.trim()?"\n"+sp:"",baris.trim()?pos:s,pos,"end"); } // baris menjorok: baris baru ikut menjorok
+  else return;
   ta.dispatchEvent(new Event("input",{bubbles:true}));
 }));
 // Setiap tempelan langsung dirapikan: bagian kepala dipindah, baris terpotong dari PDF disambung
@@ -977,7 +1045,7 @@ function applyKop(){
   r.setProperty("--mt",twToIn(MARGIN.top)); r.setProperty("--mr",twToIn(MARGIN.right));
   r.setProperty("--mb",twToIn(MARGIN.bottom)); r.setProperty("--ml",twToIn(MARGIN.left));
   r.setProperty("--logo-col",".95in"); r.setProperty("--logo-w","0.82in");
-  $("printPage").textContent="@media print{@page{size:"+p.css+";margin:"+twToIn(LMARGIN.top)+" "+twToIn(MARGIN.right)+" "+twToIn(LMARGIN.bottom)+" "+twToIn(MARGIN.left)+"}@page:first{margin-top:"+twToIn(MARGIN.top)+"}.paper{padding:0!important}}";
+  $("printPage").textContent="@media print{@page{size:"+p.css+";margin:"+twToIn(LMARGIN.top)+" "+twToIn(MARGIN.right)+" "+twToIn(LMARGIN.bottom)+" "+twToIn(MARGIN.left)+";@top-center{content:counter(page);font:12pt "+(fmt("huruf")==="tnr"?'"Times New Roman",Tinos,serif':'Arial,"Liberation Sans",sans-serif')+";vertical-align:middle}}@page:first{margin-top:"+twToIn(MARGIN.top)+";@top-center{content:none}}.paper{padding:0!important}}"; // nomor halaman di tengah atas mulai halaman 2
   r.setProperty("--lmt",twToIn(LMARGIN.top)); r.setProperty("--lmb",twToIn(LMARGIN.bottom));
 }
 $("fileLogo").addEventListener("change",e=>{
@@ -1023,8 +1091,24 @@ function rinciWidthPx(rows){
   measureCtx.font="16px "+(fmt("huruf")==="tnr"?'"Times New Roman",Tinos,serif':'Arial,"Liberation Sans",sans-serif');
   return Math.ceil(Math.max(...rows.map(r=>measureCtx.measureText(r[0]).width))+24);
 }
+// Nilai rincian yang diawali "1." dan baris sub di bawahnya: sub "Sesi I : …" pada tingkat yang sama dijadikan tabel kecil bertitik dua lurus
+const NUMV=/^(\d{1,2}[.)]|[a-z][.)])\s+(.+)$/, SUBR=/^([A-Za-z][A-Za-z\/ .()-]{0,20}?)\s*:\s*(\S.*)$/;
+const IND=.25; // satu tingkat menjorok = 0,25 inci (360 twip)
+function subGroups(sub,induk){
+  const g=[]; (sub||[]).forEach(s=>{ const m=s.t.match(SUBR), last=g[g.length-1];
+    if(m && !NUMV.test(s.t) && m[1].trim().split(/\s+/).length<=3){ const row=[m[1].trim(),rapikanRincian((induk||"")+" "+m[1],m[2].trim())];
+      if(last && last.rows && last.lv===s.lv) last.rows.push(row); else g.push({lv:s.lv,rows:[row]}); }
+    else g.push({lv:s.lv,t:s.t}); });
+  return g;
+}
+const subLabelPx = rows => rinciWidthPx(rows)-16; // label sub + satu spasi
+const valHtml = (t,lv) => { const m=t.match(NUMV), ml=lv>1?' style="margin-left:'+((lv-1)*IND)+'in"':'';
+  return m ? '<div class="nl"'+ml+'><span class="n">'+esc(m[1])+'</span><span>'+runsHtml(m[2])+'</span></div>' : '<div'+ml+'>'+runsHtml(t)+'</div>'; };
+const subHtml = (sub,induk) => subGroups(sub,induk).map(g=>g.rows
+  ? '<table class="rinci rsub" style="margin-left:'+((g.lv-1)*IND)+'in">'+g.rows.map(r=>'<tr><td style="width:'+subLabelPx(g.rows)+'px">'+esc(r[0])+'</td><td style="width:.12in">:</td><td>'+runsHtml(r[1])+'</td></tr>').join("")+'</table>'
+  : valHtml(g.t,g.lv)).join("");
 const rinciHtml = rows => { const w=rinciWidthPx(rows);
-  return '<table class="rinci">'+rows.map(r=>'<tr><td style="width:'+w+'px">'+esc(r[0])+'</td><td style="width:.12in">:</td><td>'+runsHtml(r[1])+'</td></tr>').join("")+'</table>'; };
+  return '<table class="rinci">'+rows.map(r=>'<tr><td style="width:'+w+'px">'+esc(r[0])+'</td><td style="width:.12in">:</td><td>'+(r.sub?valHtml(r[1],1)+subHtml(r.sub,r[0]):runsHtml(r[1]))+'</td></tr>').join("")+'</table>'; };
 function blocksHtml(text,lamp){
   const bl=textToBlocks(text,lamp), bw=babWidthPx(bl);
   let html="", hold="", inBab=false;
@@ -1033,10 +1117,11 @@ function blocksHtml(text,lamp){
   bl.forEach(x=>{
     if(x.k==="bab"){ inBab=true; hold+='<div class="bab" style="grid-template-columns:'+bw+'px 1fr"><span>'+esc(x.tag)+'</span><span>'+runsHtml(x.t)+'</span></div>'; return; }
     if(x.k==="judul"){ hold+=ind('<div class="sub">'+runsHtml(x.t)+'</div>'); return; }
-    emit(ind(x.k==="paragraf" ? "<p>"+runsHtml(x.t)+"</p>"
+    const lvl = h => x.lv ? '<div class="lv" style="margin-left:'+(x.lv*IND)+'in">'+h+'</div>' : h; // baris yang menjorok (Tab)
+    emit(ind(lvl(x.k==="paragraf" ? "<p>"+runsHtml(x.t)+"</p>"
       : x.k==="tabel" ? tableHtml(x.t)
       : x.k==="rincian" ? rinciHtml(x.rows)
-      : '<div class="nl"><span class="n">'+esc(x.tag)+'</span><span>'+runsHtml(x.t)+'</span></div>'));
+      : '<div class="nl"><span class="n">'+esc(x.tag)+'</span><span>'+runsHtml(x.t)+'</span></div>')));
   });
   return html+hold;
 }
@@ -1079,7 +1164,7 @@ const TTE_ICON="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACsAAAAqCAIAAAClYz
 const TTE_NOTE="Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik yang diterbitkan oleh Balai Besar Sertifikasi Elektronik (BSrE), Badan Siber dan Sandi Negara (BSSN).";
 function ttdHtml(d){
   const jab=esc(d.jabatan), nama='<div class="nama">'+esc(d.nama)+'</div>', pk=d.pangkat?'<div class="pangkat">'+esc(d.pangkat)+'</div>':'', nip=d.nip?'<div>NIP. '+esc(d.nip)+'</div>':'';
-  if(d.tte) return '<div class="tte"><div class="qr"><span>tempat QR</span></div><div class="tx"><div class="ket"><img alt="" src="'+TTE_ICON+'">Ditandatangani secara elektronik oleh :</div><div class="jab" style="font-weight:bold;white-space:pre-line">'+jab+'</div><div>'+nama+pk+nip+'</div></div></div>';
+  if(d.tte) return (d.ttdAtas?'<div class="tte-atas">'+esc(d.ttdAtas)+'</div>':'')+'<div class="tte'+(d.ttdAtas?' ada-atas':'')+'"><div class="qr"><span>tempat QR</span></div><div class="tx"><div class="ket"><img alt="" src="'+TTE_ICON+'">Ditandatangani secara elektronik oleh :</div><div class="jab" style="font-weight:bold;white-space:pre-line">'+jab+'</div><div>'+nama+pk+nip+'</div></div></div>';
   return '<div class="ttd"><div class="box"><div class="jab">'+jab+'</div><div class="gap"></div>'+nama+pk+nip+'</div></div>';
 }
 function render(){
@@ -1262,6 +1347,7 @@ function wr(t,o={}){
 function wp(content,o={}){
   let pp=o.keep?"<w:keepNext/>":""; // tetap satu halaman dengan paragraf sesudahnya
   if(o.bdr) pp+='<w:pBdr><w:bottom w:val="single" w:sz="'+o.bdr+'" w:space="1" w:color="auto"/></w:pBdr>';
+  if(o.tabs) pp+="<w:tabs>"+o.tabs.map(p=>'<w:tab w:val="left" w:pos="'+p+'"/>').join("")+"</w:tabs>";
   pp+='<w:spacing w:before="'+(o.before||0)+'" w:after="'+(o.after||0)+'" w:line="'+(o.line||240)+'" w:lineRule="auto"/>';
   if(o.ind) pp+="<w:ind "+o.ind+"/>";
   if(o.jc) pp+='<w:jc w:val="'+o.jc+'"/>';
@@ -1292,22 +1378,31 @@ function tableXml(t,width,ind){
 function blocksXml(text,lamp,P0,FL,W){
   const bl=textToBlocks(text,lamp), line=LINE(), after=AFTER(), BAB=babWidthPx(bl)*15; // 1 px = 15 twip
   let P=P0, b="";
-  bl.forEach(x=>{
+  const valXml = (t,lv,o) => { const m=t.match(NUMV), base=(lv-1)*360;
+    return m ? wp(wr(m[1]+"\t")+wruns(m[2]),Object.assign({ind:'w:left="'+(base+360)+'" w:hanging="360"'},o)) : wp(wruns(t),Object.assign({ind:'w:left="'+base+'"'},o)); };
+  // Sub rincian: "Sesi I<tab>:<tab>09.00 …" dengan titik dua lurus memakai tab stop
+  const subXml = (sub,induk,line,last) => { const g=subGroups(sub,induk), ps=[];
+    g.forEach(x=>{ if(!x.rows) return ps.push(o=>valXml(x.t,x.lv,o)); const base=(x.lv-1)*360, lw=subLabelPx(x.rows)*15;
+      x.rows.forEach(r=>ps.push(o=>wp(wr(r[0]+"\t:\t")+wruns(r[1]),Object.assign({tabs:[base+lw,base+lw+170],ind:'w:left="'+(base+lw+170)+'" w:hanging="'+(lw+170)+'"'},o)))); });
+    return ps.map((f,i)=>f({line,after:i===ps.length-1?last:0})).join(""); };
+  bl.forEach(x0=>{
+    const x=x0, o=(x.lv||0)*360; if(o) P={num:P.num+o,txt:P.txt+o,para:P.para+o}; // baris menjorok (Tab)
     const hang=P.txt-P.num;
     if(x.k==="bab"){
       b+=wp(wr(x.tag+"\t",{b:true})+wruns(x.t,{b:true}),{keep:true,line,before:200,ind:'w:left="'+(P0.num+BAB)+'" w:hanging="'+BAB+'"'});
       P={num:P0.num+BAB,txt:P0.txt+BAB,para:P0.para+BAB}; // isi di bawah bab lurus dengan judul bab
     }
     else if(x.k==="judul") b+=wp(wruns(x.t,{b:true}),{keep:true,line,before:120,after:Math.max(120,after),ind:'w:left="'+P.num+'"'}); // 6 pt di bawah sub judul
-    else if(x.k==="paragraf") b+=wp(wruns(x.t),{line,after,jc:"both",ind:'w:left="'+P.para+'" w:firstLine="'+FL+'"'});
+    else if(x.k==="paragraf") b+=wp(wruns(x.t),{line,after,jc:"both",ind:'w:left="'+P.para+'" w:firstLine="'+(x.lv?0:FL)+'"'});
     else if(x.k==="tabel") b+=tableXml(x.t,W-P.para,P.para);
     else if(x.k==="rincian"){
       const lw=rinciWidthPx(x.rows)*15, cc=170, rest=W-P.para-lw-cc;
       b+='<w:tbl><w:tblPr><w:tblW w:w="'+(lw+cc+rest)+'" w:type="dxa"/><w:tblInd w:w="'+P.para+'" w:type="dxa"/><w:tblLayout w:type="fixed"/>'+NOBDR+
         '<w:tblCellMar><w:left w:w="0" w:type="dxa"/><w:right w:w="0" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid><w:gridCol w:w="'+lw+'"/><w:gridCol w:w="'+cc+'"/><w:gridCol w:w="'+rest+'"/></w:tblGrid>'+
-        x.rows.map((r,i)=>{const a=i===x.rows.length-1?after:0; return "<w:tr>"+wtc(lw,wp(wr(r[0]),{line,after:a}))+wtc(cc,wp(wr(":"),{line,after:a}))+wtc(rest,wp(wruns(r[1]),{line,after:a}))+"</w:tr>";}).join("")+"</w:tbl>";
+        x.rows.map((r,i)=>{const a=i===x.rows.length-1?after:0; return "<w:tr>"+wtc(lw,wp(wr(r[0]),{line,after:a}))+wtc(cc,wp(wr(":"),{line,after:a}))+wtc(rest,r.sub?valXml(r[1],1,{line,after:0})+subXml(r.sub,r[0],line,a):wp(wruns(r[1]),{line,after:a}))+"</w:tr>";}).join("")+"</w:tbl>";
     }
     else b+=wp(wr(x.tag+"\t")+wruns(x.t),{line,after,jc:"both",ind:'w:left="'+P.txt+'" w:hanging="'+hang+'"'});
+    if(o) P={num:P.num-o,txt:P.txt-o,para:P.para-o};
   });
   return b;
 }
@@ -1384,6 +1479,12 @@ function buildDocumentXml(){
   } else ttd = jabP()+wp("")+wp("")+wp("")+wp("")+tail();
   b+=wp("",{line});
   const hl = d.tte ? W-4860 : h, hr = W-hl;
+  if(d.tte && d.ttdAtas){ // baris jabatan di atas kotak TTE: di tengah kotak bila muat, bila lebih panjang rata kanan dengan kotak
+    measureCtx=measureCtx||document.createElement("canvas").getContext("2d");
+    measureCtx.font="16px "+(fmt("huruf")==="tnr"?'"Times New Roman",Tinos,serif':'Arial,"Liberation Sans",sans-serif');
+    if(measureCtx.measureText(d.ttdAtas).width*15<4600) ttd=wp(wr(d.ttdAtas),{jc:"center",after:40})+ttd;
+    else b+=wp(wr(d.ttdAtas),{jc:"right",keep:true,after:40});
+  }
   b+=wtbl([hl,hr],"<w:tr><w:trPr><w:cantSplit/></w:trPr>"+wtc(hl)+wtc(hr,ttd)+"</w:tr>"); // tanda tangan tidak terbelah halaman
   const tem=lines(d.tembusan);
   if(tem.length){
@@ -1393,7 +1494,7 @@ function buildDocumentXml(){
   const ftr = d.tte ? '<w:footerReference w:type="default" r:id="rIdFtr1"/><w:footerReference w:type="first" r:id="rIdFtr1"/>' : "";
   // Lampiran di halaman baru
   // Semua halaman bermargin atas & bawah LMARGIN; halaman pertama nota memuat kop di header, berjarak MARGIN.top dari atas
-  const sect = first => '<w:sectPr>'+(first?'<w:headerReference w:type="first" r:id="rIdHdr1"/>':'')+ftr+'<w:type w:val="nextPage"/><w:pgSz w:w="'+p.w+'" w:h="'+p.h+'"/><w:pgMar w:top="'+LMARGIN.top+'" w:right="'+MARGIN.right+'" w:bottom="'+LMARGIN.bottom+'" w:left="'+MARGIN.left+'" w:header="'+MARGIN.top+'" w:footer="709" w:gutter="0"/>'+(first?'<w:titlePg/>':'')+'</w:sectPr>';
+  const sect = first => '<w:sectPr><w:headerReference w:type="default" r:id="rIdHdr2"/>'+(first?'<w:headerReference w:type="first" r:id="rIdHdr1"/>':'')+ftr+'<w:type w:val="nextPage"/><w:pgSz w:w="'+p.w+'" w:h="'+p.h+'"/><w:pgMar w:top="'+LMARGIN.top+'" w:right="'+MARGIN.right+'" w:bottom="'+LMARGIN.bottom+'" w:left="'+MARGIN.left+'" w:header="'+MARGIN.top+'" w:footer="709" w:gutter="0"/>'+(first?'<w:titlePg/>':'')+'</w:sectPr>';
   const adaLamp = textToBlocks(d.lampText,true).length>0;
   if(adaLamp){
     b+='<w:p><w:pPr>'+sect(true)+'</w:pPr></w:p>'; // akhir bagian nota; lampiran tanpa kop
@@ -1416,14 +1517,19 @@ const CT='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="h
   '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'+
   '<Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>'+
   '<Override PartName="/word/header1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/>'+
+  '<Override PartName="/word/header2.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/>'+
   '<Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/></Types>';
 const RELS='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>';
 const DOCRELS='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
   '<Relationship Id="rIdStyles" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'+
   '<Relationship Id="rIdHdr1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/header" Target="header1.xml"/>'+
+  '<Relationship Id="rIdHdr2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/header" Target="header2.xml"/>'+
   '<Relationship Id="rIdFtr1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/>'+
   '<Relationship Id="rIdTte" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/tte.png"/>'+
   '<Relationship Id="rIdLogo" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/logo.png"/></Relationships>';
+// Header halaman 2 dst.: nomor halaman di tengah atas
+const header2Xml = () => '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:hdr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'+
+  wp('<w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText xml:space="preserve"> PAGE </w:instrText></w:r><w:r><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:t>2</w:t></w:r><w:r><w:fldChar w:fldCharType="end"/></w:r>',{jc:"center"})+'</w:hdr>';
 const footerXml = () => '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:ftr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'+wp(wr(TTE_NOTE,{sz:16}),{jc:"center"})+'</w:ftr>';
 const HDRRELS='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
   '<Relationship Id="rIdLogo" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/logo.png"/></Relationships>';
@@ -1458,7 +1564,7 @@ function buildDocx(){
     {name:"[Content_Types].xml",data:CT},{name:"_rels/.rels",data:RELS},
     {name:"word/document.xml",data:buildDocumentXml()},{name:"word/styles.xml",data:stylesXml(fmt("huruf")==="tnr"?"Times New Roman":"Arial")},
     {name:"word/_rels/document.xml.rels",data:DOCRELS},
-    {name:"word/header1.xml",data:buildHeaderXml()},{name:"word/footer1.xml",data:footerXml()},{name:"word/_rels/header1.xml.rels",data:HDRRELS},{name:"word/media/logo.png",data:dataUrlBytes(kop.logo||DEFAULT_LOGO)},{name:"word/media/tte.png",data:dataUrlBytes(TTE_ICON)}
+    {name:"word/header1.xml",data:buildHeaderXml()},{name:"word/header2.xml",data:header2Xml()},{name:"word/footer1.xml",data:footerXml()},{name:"word/_rels/header1.xml.rels",data:HDRRELS},{name:"word/media/logo.png",data:dataUrlBytes(kop.logo||DEFAULT_LOGO)},{name:"word/media/tte.png",data:dataUrlBytes(TTE_ICON)}
   ]);
 }
 $("btnDocx").addEventListener("click",()=>{
